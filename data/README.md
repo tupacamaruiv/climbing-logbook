@@ -1,2 +1,2 @@
 # Data Storage
-# This folder contains climbing session data.
+This folder contains climbing session data.
