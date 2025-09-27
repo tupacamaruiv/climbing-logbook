@@ -8,12 +8,8 @@
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Roboto+Mono:wght@300;400;500;600;700&display=swap" rel="stylesheet">
     <style>
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-        }
-
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        
         body {
             font-family: 'Roboto Mono', monospace;
             background: #f8fafc;
@@ -22,7 +18,7 @@
             padding: 16px;
             line-height: 1.5;
         }
-
+        
         .container {
             max-width: 420px;
             margin: 0 auto;
@@ -32,62 +28,55 @@
             overflow: hidden;
             border: 1px solid #e2e8f0;
         }
-
+        
         .header {
             background: #1e293b;
             padding: 24px;
             text-align: center;
             color: white;
         }
-
+        
         .header h1 {
             font-size: 1.5rem;
             font-weight: 600;
             margin-bottom: 4px;
         }
-
+        
         .header p {
             color: #cbd5e1;
             font-size: 0.875rem;
             font-weight: 400;
         }
-
-        .form-container {
-            padding: 24px;
-        }
-
+        
+        .form-container { padding: 24px; }
+        
         .github-setup {
             background: #f8fafc;
             border: 1px solid #e2e8f0;
             border-radius: 12px;
             padding: 16px;
             margin-bottom: 24px;
-            transition: all 0.3s ease;
         }
-
-        .github-setup.hidden {
-            display: none;
-        }
-
+        
         .github-setup h3 {
             color: #374151;
             margin-bottom: 12px;
             font-size: 1rem;
             font-weight: 600;
         }
-
+        
         .github-setup p {
             font-size: 0.8rem;
             color: #6b7280;
             margin-bottom: 12px;
         }
-
+        
         .setup-buttons {
             display: flex;
             gap: 8px;
             margin-top: 12px;
         }
-
+        
         .setup-button {
             flex: 1;
             padding: 8px 12px;
@@ -100,11 +89,9 @@
             font-size: 0.8rem;
             transition: all 0.2s;
         }
-
-        .setup-button:hover {
-            background: #f9fafb;
-        }
-
+        
+        .setup-button:hover { background: #f9fafb; }
+        
         .tabs {
             display: flex;
             margin-bottom: 24px;
@@ -113,7 +100,7 @@
             padding: 4px;
             border: 1px solid #e2e8f0;
         }
-
+        
         .tab {
             flex: 1;
             padding: 12px 8px;
@@ -128,32 +115,18 @@
             font-size: 0.875rem;
             font-weight: 500;
         }
-
+        
         .tab.active {
             background: white;
             color: #1e293b;
             font-weight: 600;
             box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
         }
-
-        .form-section {
-            display: none;
-        }
-
-        .form-section.active {
-            display: block;
-            animation: fadeIn 0.3s ease;
-        }
-
-        @keyframes fadeIn {
-            from { opacity: 0; transform: translateY(8px); }
-            to { opacity: 1; transform: translateY(0); }
-        }
-
-        .form-group {
-            margin-bottom: 20px;
-        }
-
+        
+        .form-section { display: none; }
+        .form-section.active { display: block; }
+        .form-group { margin-bottom: 20px; }
+        
         label {
             display: block;
             margin-bottom: 6px;
@@ -161,7 +134,7 @@
             font-weight: 600;
             font-size: 0.875rem;
         }
-
+        
         input, select, textarea {
             width: 100%;
             padding: 12px;
@@ -173,95 +146,44 @@
             font-size: 0.875rem;
             transition: border-color 0.2s, box-shadow 0.2s;
         }
-
+        
         input:focus, select:focus, textarea:focus {
             outline: none;
             border-color: #6b7280;
             box-shadow: 0 0 0 3px rgba(107, 114, 128, 0.1);
         }
-
-        .autocomplete-container {
-            position: relative;
-        }
-
-        .autocomplete-suggestions {
-            position: absolute;
-            top: 100%;
-            left: 0;
-            right: 0;
-            background: white;
-            border: 1px solid #d1d5db;
-            border-top: none;
-            border-radius: 0 0 8px 8px;
-            max-height: 200px;
-            overflow-y: auto;
-            z-index: 1000;
-            display: none;
-        }
-
-        .autocomplete-suggestion {
-            padding: 12px;
-            cursor: pointer;
-            border-bottom: 1px solid #f1f5f9;
-            font-size: 0.875rem;
-            transition: background-color 0.15s;
-        }
-
-        .autocomplete-suggestion:hover,
-        .autocomplete-suggestion.selected {
-            background: #f8fafc;
-        }
-
-        .autocomplete-suggestion:last-child {
-            border-bottom: none;
-        }
-
+        
         .checkbox-group {
             display: flex;
             align-items: center;
             gap: 8px;
             margin-top: 8px;
         }
-
+        
         .checkbox {
             width: 18px;
             height: 18px;
             margin: 0;
             cursor: pointer;
         }
-
-        .checkbox-label {
-            margin: 0;
-            cursor: pointer;
-            font-weight: 500;
-            font-size: 0.875rem;
-        }
-
+        
         .star-rating {
             display: flex;
             gap: 4px;
             margin-top: 8px;
         }
-
+        
         .star {
             font-size: 1.5rem;
             cursor: pointer;
             transition: transform 0.15s;
             user-select: none;
         }
-
-        .star:hover {
-            transform: scale(1.1);
-        }
-
-        .star.active {
-            color: #fbbf24;
-        }
-
-        .star.inactive {
-            color: #d1d5db;
-        }
-
+        
+        .star:hover { transform: scale(1.1); }
+        .star.active { color: #fbbf24; }
+        .star.inactive { color: #d1d5db; }
+        
         .range-value {
             text-align: center;
             color: #374151;
@@ -269,7 +191,7 @@
             margin-top: 8px;
             font-size: 1rem;
         }
-
+        
         .button {
             width: 100%;
             padding: 16px;
@@ -284,31 +206,19 @@
             transition: all 0.2s;
             margin-top: 12px;
         }
-
+        
         .button:hover {
             background: #334155;
             transform: translateY(-1px);
         }
-
-        .button:active {
-            transform: translateY(0);
-        }
-
-        .button:disabled {
-            opacity: 0.5;
-            cursor: not-allowed;
-            transform: none;
-        }
-
+        
         .button.delete {
             background: #dc2626;
             margin-top: 20px;
         }
-
-        .button.delete:hover {
-            background: #b91c1c;
-        }
-
+        
+        .button.delete:hover { background: #b91c1c; }
+        
         .status {
             padding: 12px;
             border-radius: 8px;
@@ -317,26 +227,26 @@
             font-weight: 500;
             font-size: 0.875rem;
         }
-
+        
         .status.success {
             background: #f0fdf4;
             border: 1px solid #bbf7d0;
             color: #166534;
         }
-
+        
         .status.error {
             background: #fef2f2;
             border: 1px solid #fecaca;
             color: #dc2626;
         }
-
+        
         .quick-buttons {
             display: grid;
             grid-template-columns: 1fr 1fr;
             gap: 8px;
             margin-bottom: 20px;
         }
-
+        
         .quick-button {
             padding: 10px;
             background: #f8fafc;
@@ -349,18 +259,18 @@
             transition: all 0.2s;
             font-weight: 500;
         }
-
+        
         .quick-button:hover {
             background: #f1f5f9;
             border-color: #cbd5e1;
         }
-
+        
         .help-text {
             font-size: 0.75rem;
             color: #6b7280;
             margin-top: 4px;
         }
-
+        
         .existing-names {
             background: #f8fafc;
             border-radius: 8px;
@@ -368,21 +278,13 @@
             margin-top: 8px;
             border: 1px solid #e2e8f0;
         }
-
-        .existing-names h4 {
-            font-size: 0.75rem;
-            color: #6b7280;
-            margin-bottom: 8px;
-            text-transform: uppercase;
-            letter-spacing: 0.05em;
-        }
-
+        
         .name-tags {
             display: flex;
             flex-wrap: wrap;
             gap: 6px;
         }
-
+        
         .name-tag {
             background: white;
             color: #475569;
@@ -393,11 +295,9 @@
             transition: all 0.15s;
             border: 1px solid #e2e8f0;
         }
-
-        .name-tag:hover {
-            background: #e2e8f0;
-        }
-
+        
+        .name-tag:hover { background: #e2e8f0; }
+        
         .edit-item {
             background: #f8fafc;
             border: 1px solid #e2e8f0;
@@ -407,30 +307,17 @@
             cursor: pointer;
             transition: all 0.2s;
         }
-
+        
         .edit-item:hover {
             background: #f1f5f9;
             border-color: #cbd5e1;
         }
-
+        
         .edit-item.selected {
             background: #e0e7ff;
             border-color: #6366f1;
         }
-
-        .edit-item h5 {
-            margin: 0 0 4px 0;
-            color: #1e293b;
-            font-size: 0.875rem;
-            font-weight: 600;
-        }
-
-        .edit-item p {
-            margin: 0;
-            color: #6b7280;
-            font-size: 0.75rem;
-        }
-
+        
         .modal {
             display: none;
             position: fixed;
@@ -441,7 +328,7 @@
             height: 100%;
             background-color: rgba(0, 0, 0, 0.5);
         }
-
+        
         .modal-content {
             background-color: white;
             margin: 50% auto;
@@ -452,13 +339,13 @@
             transform: translateY(-50%);
             text-align: center;
         }
-
+        
         .modal-buttons {
             display: flex;
             gap: 12px;
             margin-top: 20px;
         }
-
+        
         .modal-button {
             flex: 1;
             padding: 12px;
@@ -467,41 +354,16 @@
             font-family: inherit;
             font-weight: 600;
             cursor: pointer;
-            transition: all 0.2s;
         }
-
+        
         .modal-button.cancel {
             background: #f1f5f9;
             color: #374151;
         }
-
+        
         .modal-button.confirm {
             background: #dc2626;
             color: white;
-        }
-
-        .modal-button:hover {
-            transform: translateY(-1px);
-        }
-
-        @media (max-width: 480px) {
-            body {
-                padding: 12px;
-            }
-            
-            .container {
-                margin: 0;
-                border-radius: 12px;
-            }
-            
-            .header, .form-container {
-                padding: 20px;
-            }
-
-            .tab {
-                font-size: 0.8rem;
-                padding: 10px 6px;
-            }
         }
     </style>
 </head>
@@ -530,9 +392,8 @@
                 </div>
             </div>
 
-            <!-- Main App (hidden until setup) -->
+            <!-- Main App -->
             <div id="mainApp" style="display: none;">
-                <!-- Tabs -->
                 <div class="tabs">
                     <button class="tab active" onclick="switchTab('session')">Session</button>
                     <button class="tab" onclick="switchTab('climb')">Climb</button>
@@ -546,12 +407,10 @@
                         <button class="quick-button" onclick="fillToday()">Today's Date</button>
                         <button class="quick-button" onclick="fillLastLocation()">Last Location</button>
                     </div>
-
                     <div class="form-group">
                         <label>Date</label>
                         <input type="date" id="sessionDate" required />
                     </div>
-
                     <div class="form-group">
                         <label>Location</label>
                         <select id="sessionLocation" required>
@@ -561,15 +420,11 @@
                             <option value="Triangle Board">Triangle Board</option>
                         </select>
                     </div>
-
                     <div class="form-group">
                         <label>Session RPE (1-10)</label>
                         <input type="range" id="sessionRPE" min="1" max="10" value="5" />
-                        <div class="range-value">
-                            <span id="rpeValue">5</span>/10
-                        </div>
+                        <div class="range-value"><span id="rpeValue">5</span>/10</div>
                     </div>
-
                     <div class="form-group">
                         <label>Session Rating</label>
                         <div class="star-rating" id="sessionStars">
@@ -580,50 +435,37 @@
                             <span class="star" onclick="setRating(5)">⭐</span>
                         </div>
                     </div>
-
                     <div class="form-group">
                         <label>Notes</label>
                         <textarea id="sessionNotes" rows="3" placeholder="How did the session go?"></textarea>
                     </div>
-
                     <div class="form-group">
                         <label>Videos</label>
                         <input type="url" id="sessionVideos" placeholder="Paste video links here" />
                     </div>
-
-                    <button class="button" onclick="submitSession()">
-                        Log Session to GitHub
-                    </button>
+                    <button class="button" onclick="submitSession()">Log Session to GitHub</button>
                 </div>
 
-                <!-- Individual Climb Form -->
+                <!-- Climb Form -->
                 <div class="form-section" id="climb-form">
                     <div class="form-group">
                         <label>Session</label>
                         <select id="climbSession" required>
                             <option value="">Choose session...</option>
                         </select>
-                        <p class="help-text">Log a session first, then add climbs to it</p>
+                        <p class="help-text">Available sessions will appear here</p>
                     </div>
-
                     <div class="form-group">
                         <label>Boulder Name</label>
-                        <div class="autocomplete-container">
-                            <input type="text" id="boulderName" placeholder="Start typing boulder name..." required />
-                            <div class="autocomplete-suggestions" id="boulderSuggestions"></div>
-                        </div>
-                        
+                        <input type="text" id="boulderName" placeholder="Start typing boulder name..." required />
                         <div class="existing-names" id="existingNames" style="display: none;">
-                            <h4>Recent Boulders</h4>
                             <div class="name-tags" id="nameTags"></div>
                         </div>
                     </div>
-
                     <div class="form-group">
                         <label>Grade</label>
                         <input type="text" id="climbGrade" placeholder="e.g., V4, B3" required />
                     </div>
-
                     <div class="form-group">
                         <label>Grade System</label>
                         <select id="gradeSystem">
@@ -631,7 +473,6 @@
                             <option value="B">B-Scale</option>
                         </select>
                     </div>
-
                     <div class="form-group">
                         <label>Send Status</label>
                         <select id="sendStatus" required>
@@ -642,39 +483,31 @@
                             <option value="Gave Up">Gave Up</option>
                         </select>
                     </div>
-
                     <div class="form-group">
                         <div class="checkbox-group">
                             <input type="checkbox" id="isProject" class="checkbox" />
-                            <label for="isProject" class="checkbox-label">This is a project</label>
+                            <label for="isProject">This is a project</label>
                         </div>
                     </div>
-
                     <div class="form-group">
                         <label>Attempts This Session</label>
                         <input type="number" id="attempts" min="1" value="1" />
                     </div>
-
                     <div class="form-group">
                         <div class="checkbox-group">
                             <input type="checkbox" id="climbHighlight" class="checkbox" />
-                            <label for="climbHighlight" class="checkbox-label">Performance Highlight</label>
+                            <label for="climbHighlight">Performance Highlight</label>
                         </div>
                     </div>
-
                     <div class="form-group">
                         <label>Climb Notes</label>
                         <textarea id="climbNotes" rows="3" placeholder="Beta, technique, thoughts..."></textarea>
                     </div>
-
                     <div class="form-group">
                         <label>Videos</label>
                         <input type="url" id="climbVideos" placeholder="Paste video links here" />
                     </div>
-
-                    <button class="button" onclick="submitClimb()">
-                        Log Climb to GitHub
-                    </button>
+                    <button class="button" onclick="submitClimb()">Log Climb to GitHub</button>
                 </div>
 
                 <!-- Training Form -->
@@ -683,7 +516,6 @@
                         <label>Date</label>
                         <input type="date" id="trainingDate" required />
                     </div>
-
                     <div class="form-group">
                         <label>Exercise</label>
                         <select id="exercise" required>
@@ -693,27 +525,21 @@
                             <option value="20mm Lift">20mm Lift</option>
                         </select>
                     </div>
-
                     <div class="form-group">
                         <label>Working Weight (lbs)</label>
                         <input type="number" id="weight" min="0" placeholder="e.g., 225" required />
                     </div>
-
                     <div class="form-group">
                         <div class="checkbox-group">
                             <input type="checkbox" id="trainingHighlight" class="checkbox" />
-                            <label for="trainingHighlight" class="checkbox-label">Performance Highlight (PR, etc.)</label>
+                            <label for="trainingHighlight">Performance Highlight (PR, etc.)</label>
                         </div>
                     </div>
-
                     <div class="form-group">
                         <label>Notes</label>
                         <textarea id="trainingNotes" rows="2" placeholder="Form notes, how it felt..."></textarea>
                     </div>
-
-                    <button class="button" onclick="submitTraining()">
-                        Log Training to GitHub
-                    </button>
+                    <button class="button" onclick="submitTraining()">Log Training to GitHub</button>
                 </div>
 
                 <!-- Edit Form -->
@@ -727,107 +553,26 @@
                             <option value="training">Recent Training</option>
                         </select>
                     </div>
-
                     <div id="recentItems" style="display: none;">
-                        <h4 style="margin: 20px 0 10px 0; color: #374151; font-size: 0.9rem;">Recent Entries</h4>
                         <div id="itemsList"></div>
                     </div>
-
                     <div id="editFormContainer" style="display: none;">
-                        <h4 style="margin: 20px 0 10px 0; color: #374151; font-size: 0.9rem;">Edit Entry</h4>
-                        
-                        <!-- Session Edit Fields -->
-                        <div id="editSessionFields" style="display: none;">
-                            <div class="form-group">
-                                <label>Session RPE (1-10)</label>
-                                <input type="range" id="editSessionRPE" min="1" max="10" value="5" />
-                                <div class="range-value">
-                                    <span id="editRPEValue">5</span>/10
-                                </div>
-                            </div>
-                            <div class="form-group">
-                                <label>Session Rating</label>
-                                <div class="star-rating" id="editSessionStars">
-                                    <span class="star" onclick="setEditRating(1)">⭐</span>
-                                    <span class="star" onclick="setEditRating(2)">⭐</span>
-                                    <span class="star" onclick="setEditRating(3)">⭐</span>
-                                    <span class="star" onclick="setEditRating(4)">⭐</span>
-                                    <span class="star" onclick="setEditRating(5)">⭐</span>
-                                </div>
-                            </div>
-                            <div class="form-group">
-                                <label>Notes</label>
-                                <textarea id="editSessionNotes" rows="3"></textarea>
-                            </div>
-                            <div class="form-group">
-                                <label>Videos</label>
-                                <input type="url" id="editSessionVideos" placeholder="Paste video links here" />
-                            </div>
-                        </div>
-
-                        <!-- Climb Edit Fields -->
-                        <div id="editClimbFields" style="display: none;">
-                            <div class="form-group">
-                                <div class="checkbox-group">
-                                    <input type="checkbox" id="editIsProject" class="checkbox" />
-                                    <label for="editIsProject" class="checkbox-label">This is a project</label>
-                                </div>
-                            </div>
-                            <div class="form-group">
-                                <div class="checkbox-group">
-                                    <input type="checkbox" id="editClimbHighlight" class="checkbox" />
-                                    <label for="editClimbHighlight" class="checkbox-label">Performance Highlight</label>
-                                </div>
-                            </div>
-                            <div class="form-group">
-                                <label>Climb Notes</label>
-                                <textarea id="editClimbNotes" rows="3"></textarea>
-                            </div>
-                            <div class="form-group">
-                                <label>Videos</label>
-                                <input type="url" id="editClimbVideos" placeholder="Paste video links here" />
-                            </div>
-                        </div>
-
-                        <!-- Training Edit Fields -->
-                        <div id="editTrainingFields" style="display: none;">
-                            <div class="form-group">
-                                <label>Working Weight (lbs)</label>
-                                <input type="number" id="editWeight" min="0" />
-                            </div>
-                            <div class="form-group">
-                                <div class="checkbox-group">
-                                    <input type="checkbox" id="editTrainingHighlight" class="checkbox" />
-                                    <label for="editTrainingHighlight" class="checkbox-label">Performance Highlight</label>
-                                </div>
-                            </div>
-                            <div class="form-group">
-                                <label>Notes</label>
-                                <textarea id="editTrainingNotes" rows="2"></textarea>
-                            </div>
-                        </div>
-
-                        <button class="button" onclick="updateEntry()">
-                            Update Entry
-                        </button>
-                        
-                        <button class="button delete" onclick="showDeleteConfirmation()">
-                            Delete Entry
-                        </button>
+                        <div id="editFields"></div>
+                        <button class="button" onclick="updateEntry()">Update Entry</button>
+                        <button class="button delete" onclick="showDeleteConfirmation()">Delete Entry</button>
                     </div>
                 </div>
             </div>
 
-            <!-- Status Messages -->
             <div id="status"></div>
         </div>
     </div>
 
-    <!-- Delete Confirmation Modal -->
+    <!-- Delete Modal -->
     <div id="deleteModal" class="modal">
         <div class="modal-content">
-            <h3 style="color: #dc2626; margin-bottom: 12px;">Delete Entry</h3>
-            <p id="deleteConfirmText" style="margin-bottom: 20px;">Are you sure you want to delete this entry? This cannot be undone.</p>
+            <h3 style="color: #dc2626;">Delete Entry</h3>
+            <p id="deleteConfirmText">Are you sure you want to delete this entry? This cannot be undone.</p>
             <div class="modal-buttons">
                 <button class="modal-button cancel" onclick="hideDeleteConfirmation()">Cancel</button>
                 <button class="modal-button confirm" onclick="confirmDelete()">Delete</button>
@@ -839,74 +584,640 @@
         let currentRating = 0;
         let editRating = 0;
         let existingBoulderNames = [];
-        let selectedSuggestionIndex = -1;
         let selectedEditItem = null;
         let currentEditData = [];
         let currentEditIndex = -1;
-        let sessions = [];
-        
-        // Initialize on page load
-        document.addEventListener('DOMContentLoaded', function() {
-            initializeApp();
-        });
-        
+
+        document.addEventListener('DOMContentLoaded', initializeApp);
+
         function initializeApp() {
-            // Set default dates
             const today = new Date().toISOString().split('T')[0];
             document.getElementById('sessionDate').value = today;
             document.getElementById('trainingDate').value = today;
-            
-            // Check if setup is already saved
+
             const savedRepo = localStorage.getItem('githubRepo');
             const savedToken = localStorage.getItem('githubToken');
-            
+
             if (savedRepo && savedToken) {
                 document.getElementById('githubRepo').value = savedRepo;
                 document.getElementById('githubToken').value = savedToken;
                 showMainApp();
             }
-            
-            // Setup event listeners
+
             document.getElementById('sessionRPE').addEventListener('input', function() {
                 document.getElementById('rpeValue').textContent = this.value;
             });
-            
-            document.getElementById('editSessionRPE').addEventListener('input', function() {
-                document.getElementById('editRPEValue').textContent = this.value;
-            });
-
-            // Boulder name autocomplete
-            setupBoulderAutocomplete();
         }
 
-        function setupBoulderAutocomplete() {
-            const boulderInput = document.getElementById('boulderName');
-            const suggestions = document.getElementById('boulderSuggestions');
-            
-            boulderInput.addEventListener('input', function() {
-                const input = this.value.toLowerCase();
-                
-                if (input.length === 0) {
-                    hideSuggestions();
-                    return;
-                }
-                
-                const matches = existingBoulderNames.filter(name => 
-                    name.toLowerCase().includes(input)
-                );
-                
-                if (matches.length > 0) {
-                    suggestions.innerHTML = matches.map((name, index) => 
-                        `<div class="autocomplete-suggestion" data-name="${name}" data-index="${index}">${name}</div>`
-                    ).join('');
-                    suggestions.style.display = 'block';
+        function saveSetup() {
+            const repo = document.getElementById('githubRepo').value.trim();
+            const token = document.getElementById('githubToken').value.trim();
+
+            if (!repo || !token) {
+                showStatus('Please enter both repository and token', 'error');
+                return;
+            }
+
+            if (!repo.includes('/')) {
+                showStatus('Repository should be in format: username/repository-name', 'error');
+                return;
+            }
+
+            localStorage.setItem('githubRepo', repo);
+            localStorage.setItem('githubToken', token);
+            showStatus('Setup saved successfully!', 'success');
+            setTimeout(showMainApp, 1000);
+        }
+
+        async function testConnection() {
+            const repo = document.getElementById('githubRepo').value.trim();
+            const token = document.getElementById('githubToken').value.trim();
+
+            if (!repo || !token) {
+                showStatus('Please enter both repository and token', 'error');
+                return;
+            }
+
+            try {
+                const response = await fetch(`https://api.github.com/repos/${repo}`, {
+                    headers: { 'Authorization': `token ${token}` }
+                });
+
+                if (response.ok) {
+                    showStatus('Connection successful! ✅', 'success');
+                    saveSetup();
+                } else if (response.status === 404) {
+                    showStatus('Repository not found. Check the name.', 'error');
+                } else if (response.status === 401) {
+                    showStatus('Invalid token. Check your access token.', 'error');
                 } else {
-                    hideSuggestions();
+                    showStatus(`Connection failed: ${response.statusText}`, 'error');
                 }
+            } catch (error) {
+                showStatus('Network error. Check your connection.', 'error');
+            }
+        }
+
+        function showMainApp() {
+            document.getElementById('githubSetup').style.display = 'none';
+            document.getElementById('mainApp').style.display = 'block';
+            loadSessions();
+            loadBoulderNames();
+        }
+
+        function switchTab(tab) {
+            document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+            document.querySelectorAll('.form-section').forEach(s => s.classList.remove('active'));
+
+            event.target.classList.add('active');
+            document.getElementById(tab + '-form').classList.add('active');
+
+            if (tab === 'climb') loadSessions();
+        }
+
+        function setRating(rating) {
+            currentRating = rating;
+            updateStars('#sessionStars', rating);
+        }
+
+        function updateStars(selector, rating) {
+            const stars = document.querySelectorAll(selector + ' .star');
+            stars.forEach((star, index) => {
+                star.classList.toggle('active', index < rating);
+                star.classList.toggle('inactive', index >= rating);
             });
-            
-            suggestions.addEventListener('click', function(e) {
-                if (e.target.classList.contains('autocomplete-suggestion')) {
-                    boulderInput.value = e.target.dataset.name;
-                    hideSuggestions();
+        }
+
+        function fillToday() {
+            document.getElementById('sessionDate').value = new Date().toISOString().split('T')[0];
+        }
+
+        function fillLastLocation() {
+            const lastLocation = localStorage.getItem('lastLocation');
+            if (lastLocation) {
+                document.getElementById('sessionLocation').value = lastLocation;
+            } else {
+                showStatus('No previous location saved', 'error');
+            }
+        }
+
+        async function loadSessions() {
+            try {
+                const repo = localStorage.getItem('githubRepo');
+                const token = localStorage.getItem('githubToken');
+                
+                const response = await fetch(`https://api.github.com/repos/${repo}/contents/data/sessions.json`, {
+                    headers: { 'Authorization': `token ${token}` }
+                });
+
+                if (response.ok) {
+                    const data = await response.json();
+                    const sessions = JSON.parse(atob(data.content));
+                    updateSessionDropdown(sessions);
                 }
+            } catch (error) {
+                console.log('No sessions found yet');
+            }
+        }
+
+        function updateSessionDropdown(sessions) {
+            const dropdown = document.getElementById('climbSession');
+            dropdown.innerHTML = '<option value="">Choose session...</option>';
+
+            const today = new Date().toISOString().split('T')[0];
+            const recentSessions = sessions.filter(s => s.date >= today || 
+                (new Date(s.date) >= new Date(Date.now() - 7 * 24 * 60 * 60 * 1000)))
+                .sort((a, b) => new Date(b.date) - new Date(a.date));
+
+            recentSessions.forEach(session => {
+                const option = document.createElement('option');
+                option.value = session.sessionId;
+                option.textContent = `${session.date} - ${session.location}`;
+                dropdown.appendChild(option);
+            });
+        }
+
+        async function loadBoulderNames() {
+            try {
+                const repo = localStorage.getItem('githubRepo');
+                const token = localStorage.getItem('githubToken');
+                
+                const response = await fetch(`https://api.github.com/repos/${repo}/contents/data/climbs.json`, {
+                    headers: { 'Authorization': `token ${token}` }
+                });
+
+                if (response.ok) {
+                    const data = await response.json();
+                    const climbs = JSON.parse(atob(data.content));
+                    existingBoulderNames = [...new Set(climbs.map(c => c.boulderName))].filter(Boolean);
+                    updateBoulderNameDisplay();
+                }
+            } catch (error) {
+                console.log('No climbs found yet');
+            }
+        }
+
+        function updateBoulderNameDisplay() {
+            const existingDiv = document.getElementById('existingNames');
+            const tagsDiv = document.getElementById('nameTags');
+
+            if (existingBoulderNames.length > 0) {
+                existingDiv.style.display = 'block';
+                tagsDiv.innerHTML = existingBoulderNames.slice(-10).reverse().map(name => 
+                    `<span class="name-tag" onclick="selectBoulderName('${name}')">${name}</span>`
+                ).join('');
+            }
+        }
+
+        function selectBoulderName(name) {
+            document.getElementById('boulderName').value = name;
+        }
+
+        async function submitSession() {
+            const sessionData = {
+                sessionId: 'S' + Date.now(),
+                date: document.getElementById('sessionDate').value,
+                location: document.getElementById('sessionLocation').value,
+                rpe: parseInt(document.getElementById('sessionRPE').value),
+                stars: currentRating,
+                notes: document.getElementById('sessionNotes').value,
+                videos: document.getElementById('sessionVideos').value,
+                timestamp: new Date().toISOString()
+            };
+
+            if (!sessionData.date || !sessionData.location) {
+                showStatus('Please fill in date and location', 'error');
+                return;
+            }
+
+            if (await submitToGitHub('sessions.json', sessionData)) {
+                localStorage.setItem('lastLocation', sessionData.location);
+                clearSessionForm();
+                loadSessions();
+            }
+        }
+
+        async function submitClimb() {
+            const sessionId = document.getElementById('climbSession').value;
+
+            if (!sessionId) {
+                showStatus('Please select a session first', 'error');
+                return;
+            }
+
+            const climbData = {
+                climbId: 'C' + Date.now(),
+                sessionId: sessionId,
+                boulderName: document.getElementById('boulderName').value,
+                grade: document.getElementById('climbGrade').value,
+                gradeSystem: document.getElementById('gradeSystem').value,
+                sendStatus: document.getElementById('sendStatus').value,
+                isProject: document.getElementById('isProject').checked,
+                attempts: parseInt(document.getElementById('attempts').value),
+                performanceHighlight: document.getElementById('climbHighlight').checked,
+                notes: document.getElementById('climbNotes').value,
+                videos: document.getElementById('climbVideos').value,
+                timestamp: new Date().toISOString()
+            };
+
+            if (!climbData.boulderName || !climbData.grade || !climbData.sendStatus) {
+                showStatus('Please fill in boulder name, grade, and send status', 'error');
+                return;
+            }
+
+            if (await submitToGitHub('climbs.json', climbData)) {
+                clearClimbForm();
+                loadBoulderNames();
+            }
+        }
+
+        async function submitTraining() {
+            const trainingData = {
+                trainingId: 'T' + Date.now(),
+                date: document.getElementById('trainingDate').value,
+                exercise: document.getElementById('exercise').value,
+                weight: parseInt(document.getElementById('weight').value),
+                performanceHighlight: document.getElementById('trainingHighlight').checked,
+                notes: document.getElementById('trainingNotes').value,
+                timestamp: new Date().toISOString()
+            };
+
+            if (!trainingData.date || !trainingData.exercise || !trainingData.weight) {
+                showStatus('Please fill in date, exercise, and weight', 'error');
+                return;
+            }
+
+            if (await submitToGitHub('training.json', trainingData)) {
+                clearTrainingForm();
+            }
+        }
+
+        async function submitToGitHub(filename, data) {
+            const repo = localStorage.getItem('githubRepo');
+            const token = localStorage.getItem('githubToken');
+
+            if (!repo || !token) {
+                showStatus('Setup not complete', 'error');
+                return false;
+            }
+
+            try {
+                let existingContent = [];
+                let sha = null;
+
+                try {
+                    const getResponse = await fetch(`https://api.github.com/repos/${repo}/contents/data/${filename}`, {
+                        headers: { 'Authorization': `token ${token}` }
+                    });
+
+                    if (getResponse.ok) {
+                        const existingFile = await getResponse.json();
+                        existingContent = JSON.parse(atob(existingFile.content));
+                        sha = existingFile.sha;
+                    }
+                } catch (error) {
+                    console.log('Creating new file');
+                }
+
+                existingContent.push(data);
+
+                const response = await fetch(`https://api.github.com/repos/${repo}/contents/data/${filename}`, {
+                    method: 'PUT',
+                    headers: {
+                        'Authorization': `token ${token}`,
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({
+                        message: `Add ${filename.replace('.json', '')} entry`,
+                        content: btoa(JSON.stringify(existingContent, null, 2)),
+                        sha: sha
+                    })
+                });
+
+                if (response.ok) {
+                    showStatus('Successfully saved to GitHub! 🎉', 'success');
+                    return true;
+                } else {
+                    const errorData = await response.json();
+                    showStatus(`GitHub error: ${errorData.message}`, 'error');
+                    return false;
+                }
+            } catch (error) {
+                showStatus(`Network error: ${error.message}`, 'error');
+                return false;
+            }
+        }
+
+        async function loadEditData() {
+            const type = document.getElementById('editType').value;
+            if (!type) {
+                document.getElementById('recentItems').style.display = 'none';
+                document.getElementById('editFormContainer').style.display = 'none';
+                return;
+            }
+
+            const repo = localStorage.getItem('githubRepo');
+            const token = localStorage.getItem('githubToken');
+
+            try {
+                const filename = type + '.json';
+                const response = await fetch(`https://api.github.com/repos/${repo}/contents/data/${filename}`, {
+                    headers: { 'Authorization': `token ${token}` }
+                });
+
+                if (response.ok) {
+                    const data = await response.json();
+                    currentEditData = JSON.parse(atob(data.content));
+                    
+                    // Show recent entries (last 10 or past week)
+                    const weekAgo = new Date(Date.now() - 7 * 24 * 60 * 60 * 1000);
+                    const recentItems = currentEditData.filter(item => {
+                        const itemDate = new Date(item.date || item.timestamp);
+                        return itemDate >= weekAgo;
+                    }).slice(-10);
+
+                    displayEditItems(type, recentItems);
+                } else {
+                    showStatus('No data found', 'error');
+                }
+            } catch (error) {
+                showStatus('Error loading data', 'error');
+            }
+        }
+
+        function displayEditItems(type, items) {
+            const container = document.getElementById('itemsList');
+            const recentItems = document.getElementById('recentItems');
+
+            if (items.length === 0) {
+                container.innerHTML = '<p style="color: #6b7280;">No recent entries found</p>';
+            } else {
+                container.innerHTML = items.map((item, index) => {
+                    let title = '';
+                    let subtitle = '';
+
+                    if (type === 'sessions') {
+                        title = `${item.date} - ${item.location}`;
+                        subtitle = `RPE: ${item.rpe || 'Not set'} • ${item.stars ? '⭐'.repeat(item.stars) : 'No rating'}`;
+                    } else if (type === 'climbs') {
+                        title = `${item.boulderName} (${item.grade})`;
+                        subtitle = `${item.sendStatus} • ${item.isProject ? 'Project' : 'Regular'}`;
+                    } else if (type === 'training') {
+                        title = `${item.exercise} - ${item.weight}lbs`;
+                        subtitle = `${item.date}`;
+                    }
+
+                    return `
+                        <div class="edit-item" onclick="selectEditItem(${currentEditData.length - items.length + index}, '${type}')">
+                            <h5>${title}</h5>
+                            <p>${subtitle}</p>
+                        </div>
+                    `;
+                }).join('');
+            }
+
+            recentItems.style.display = 'block';
+        }
+
+        function selectEditItem(index, type) {
+            selectedEditItem = currentEditData[index];
+            currentEditIndex = index;
+
+            document.querySelectorAll('.edit-item').forEach((item, i) => {
+                item.classList.toggle('selected', i === (index - (currentEditData.length - document.querySelectorAll('.edit-item').length)));
+            });
+
+            showEditForm(type, selectedEditItem);
+        }
+
+        function showEditForm(type, item) {
+            const container = document.getElementById('editFields');
+            let fieldsHTML = '';
+
+            if (type === 'sessions') {
+                fieldsHTML = `
+                    <div class="form-group">
+                        <label>Session RPE (1-10)</label>
+                        <input type="range" id="editSessionRPE" min="1" max="10" value="${item.rpe || 5}" />
+                        <div class="range-value"><span id="editRPEValue">${item.rpe || 5}</span>/10</div>
+                    </div>
+                    <div class="form-group">
+                        <label>Session Rating</label>
+                        <div class="star-rating" id="editSessionStars">
+                            <span class="star" onclick="setEditRating(1)">⭐</span>
+                            <span class="star" onclick="setEditRating(2)">⭐</span>
+                            <span class="star" onclick="setEditRating(3)">⭐</span>
+                            <span class="star" onclick="setEditRating(4)">⭐</span>
+                            <span class="star" onclick="setEditRating(5)">⭐</span>
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <label>Notes</label>
+                        <textarea id="editSessionNotes" rows="3">${item.notes || ''}</textarea>
+                    </div>
+                    <div class="form-group">
+                        <label>Videos</label>
+                        <input type="url" id="editSessionVideos" value="${item.videos || ''}" />
+                    </div>
+                `;
+                editRating = item.stars || 0;
+            } else if (type === 'climbs') {
+                fieldsHTML = `
+                    <div class="form-group">
+                        <div class="checkbox-group">
+                            <input type="checkbox" id="editIsProject" ${item.isProject ? 'checked' : ''} />
+                            <label for="editIsProject">This is a project</label>
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <div class="checkbox-group">
+                            <input type="checkbox" id="editClimbHighlight" ${item.performanceHighlight ? 'checked' : ''} />
+                            <label for="editClimbHighlight">Performance Highlight</label>
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <label>Climb Notes</label>
+                        <textarea id="editClimbNotes" rows="3">${item.notes || ''}</textarea>
+                    </div>
+                    <div class="form-group">
+                        <label>Videos</label>
+                        <input type="url" id="editClimbVideos" value="${item.videos || ''}" />
+                    </div>
+                `;
+            } else if (type === 'training') {
+                fieldsHTML = `
+                    <div class="form-group">
+                        <label>Working Weight (lbs)</label>
+                        <input type="number" id="editWeight" min="0" value="${item.weight || ''}" />
+                    </div>
+                    <div class="form-group">
+                        <div class="checkbox-group">
+                            <input type="checkbox" id="editTrainingHighlight" ${item.performanceHighlight ? 'checked' : ''} />
+                            <label for="editTrainingHighlight">Performance Highlight</label>
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <label>Notes</label>
+                        <textarea id="editTrainingNotes" rows="2">${item.notes || ''}</textarea>
+                    </div>
+                `;
+            }
+
+            container.innerHTML = fieldsHTML;
+            document.getElementById('editFormContainer').style.display = 'block';
+
+            // Setup event listeners for new elements
+            if (type === 'sessions') {
+                document.getElementById('editSessionRPE').addEventListener('input', function() {
+                    document.getElementById('editRPEValue').textContent = this.value;
+                });
+                updateStars('#editSessionStars', editRating);
+            }
+        }
+
+        function setEditRating(rating) {
+            editRating = rating;
+            updateStars('#editSessionStars', rating);
+        }
+
+        async function updateEntry() {
+            if (!selectedEditItem) {
+                showStatus('Please select an entry to update', 'error');
+                return;
+            }
+
+            const type = document.getElementById('editType').value;
+
+            if (type === 'sessions') {
+                selectedEditItem.rpe = parseInt(document.getElementById('editSessionRPE').value);
+                selectedEditItem.stars = editRating;
+                selectedEditItem.notes = document.getElementById('editSessionNotes').value;
+                selectedEditItem.videos = document.getElementById('editSessionVideos').value;
+            } else if (type === 'climbs') {
+                selectedEditItem.isProject = document.getElementById('editIsProject').checked;
+                selectedEditItem.performanceHighlight = document.getElementById('editClimbHighlight').checked;
+                selectedEditItem.notes = document.getElementById('editClimbNotes').value;
+                selectedEditItem.videos = document.getElementById('editClimbVideos').value;
+            } else if (type === 'training') {
+                selectedEditItem.weight = parseInt(document.getElementById('editWeight').value);
+                selectedEditItem.performanceHighlight = document.getElementById('editTrainingHighlight').checked;
+                selectedEditItem.notes = document.getElementById('editTrainingNotes').value;
+            }
+
+            selectedEditItem.lastUpdated = new Date().toISOString();
+
+            if (await updateGitHubFile(type + '.json', currentEditData)) {
+                showStatus('Entry updated successfully! 🎉', 'success');
+                loadEditData();
+            }
+        }
+
+        async function updateGitHubFile(filename, data) {
+            const repo = localStorage.getItem('githubRepo');
+            const token = localStorage.getItem('githubToken');
+
+            try {
+                const getResponse = await fetch(`https://api.github.com/repos/${repo}/contents/data/${filename}`, {
+                    headers: { 'Authorization': `token ${token}` }
+                });
+
+                const existingFile = await getResponse.json();
+                
+                const response = await fetch(`https://api.github.com/repos/${repo}/contents/data/${filename}`, {
+                    method: 'PUT',
+                    headers: {
+                        'Authorization': `token ${token}`,
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({
+                        message: `Update ${filename.replace('.json', '')} entry`,
+                        content: btoa(JSON.stringify(data, null, 2)),
+                        sha: existingFile.sha
+                    })
+                });
+
+                return response.ok;
+            } catch (error) {
+                showStatus('Error updating entry', 'error');
+                return false;
+            }
+        }
+
+        function showDeleteConfirmation() {
+            if (!selectedEditItem) {
+                showStatus('Please select an entry to delete', 'error');
+                return;
+            }
+
+            const type = document.getElementById('editType').value;
+            let itemDescription = '';
+
+            if (type === 'sessions') {
+                itemDescription = `session from ${selectedEditItem.date} at ${selectedEditItem.location}`;
+            } else if (type === 'climbs') {
+                itemDescription = `climb "${selectedEditItem.boulderName}" (${selectedEditItem.grade})`;
+            } else if (type === 'training') {
+                itemDescription = `${selectedEditItem.exercise} training (${selectedEditItem.weight}lbs)`;
+            }
+
+            document.getElementById('deleteConfirmText').textContent = 
+                `Are you sure you want to delete this ${itemDescription}? This cannot be undone.`;
+            document.getElementById('deleteModal').style.display = 'block';
+        }
+
+        function hideDeleteConfirmation() {
+            document.getElementById('deleteModal').style.display = 'none';
+        }
+
+        async function confirmDelete() {
+            const type = document.getElementById('editType').value;
+            
+            // Remove the item from the array
+            currentEditData.splice(currentEditIndex, 1);
+            
+            if (await updateGitHubFile(type + '.json', currentEditData)) {
+                showStatus('Entry deleted successfully', 'success');
+                hideDeleteConfirmation();
+                document.getElementById('editFormContainer').style.display = 'none';
+                loadEditData();
+            }
+        }
+
+        function clearSessionForm() {
+            document.getElementById('sessionNotes').value = '';
+            document.getElementById('sessionVideos').value = '';
+            setRating(0);
+            document.getElementById('sessionRPE').value = 5;
+            document.getElementById('rpeValue').textContent = '5';
+        }
+
+        function clearClimbForm() {
+            document.getElementById('boulderName').value = '';
+            document.getElementById('climbGrade').value = '';
+            document.getElementById('climbNotes').value = '';
+            document.getElementById('climbVideos').value = '';
+            document.getElementById('isProject').checked = false;
+            document.getElementById('climbHighlight').checked = false;
+            document.getElementById('attempts').value = '1';
+            document.getElementById('sendStatus').value = '';
+        }
+
+        function clearTrainingForm() {
+            document.getElementById('trainingNotes').value = '';
+            document.getElementById('trainingHighlight').checked = false;
+            document.getElementById('weight').value = '';
+            document.getElementById('exercise').value = '';
+        }
+
+        function showStatus(message, type) {
+            const status = document.getElementById('status');
+            status.className = `status ${type}`;
+            status.textContent = message;
+            setTimeout(() => {
+                status.textContent = '';
+                status.className = '';
+            }, 5000);
+        }
+    </script>
+</body>
+</html>
