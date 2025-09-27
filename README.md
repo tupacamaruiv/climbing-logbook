@@ -28,10 +28,24 @@ A clean, simple web app for tracking your bouldering sessions, individual climbs
    - ✅ Check **"Add a README file"**
    - Click **"Create repository"**
 
-### Step 2: Set Up the App Structure
+### Step 2: Fork the Main Repository
 
-1. **Create the data folder**
-   - In your new repository, click **"Create new file"**
+Instead of creating files manually, you'll fork (copy) the main climbing logger repository to get all the latest code:
+
+1. **Go to the main climbing logger repository**
+   - Visit: [https://github.com/tupacamaruiv/climbing-logbook](https://github.com/tupacamaruiv/climbing-logbook)
+
+2. **Fork the repository**
+   - Click the **"Fork"** button in the top right corner
+   - **Owner**: Select your username (should be pre-selected)
+   - **Repository name**: Leave as `climbing-logbook`
+   - **Description**: `Personal climbing progress tracker` (optional)
+   - Make sure **"Copy the main branch only"** is checked
+   - Click **"Create fork"**
+
+3. **Create your data folder**
+   - You'll now be in your forked repository
+   - Click **"Create new file"**
    - In the filename box, type: `data/README.md`
    - This automatically creates a `data` folder with a README inside
    - In the file editor, add this text:
@@ -40,13 +54,7 @@ A clean, simple web app for tracking your bouldering sessions, individual climbs
      This folder contains your climbing session data in JSON format.
      Your app will automatically create files here when you start logging.
      ```
-   - Scroll down and click **"Commit new file"**
-
-2. **Add the climbing logger app**
-   - Click **"Add file"** → **"Create new file"** 
-   - **Filename**: `index.html` (exactly like this)
-   - Copy the complete HTML code from the climbing logger app
-   - Scroll down and click **"Commit new file"**
+4. Scroll down and click **"Commit new file"**
 
 ### Step 3: Enable GitHub Pages (Make Your App Live)
 
@@ -113,6 +121,43 @@ Your app needs permission to save data to your repository. Here's how to create 
    - The setup section will disappear
    - You'll see tabs for Session, Climb, Training, and Edit
    - You're ready to start logging your climbing!
+
+### Step 5: Updating Your App
+
+When new features are released, you can merge updates from the main repository:
+
+**⚠️ IMPORTANT WARNING: Backup Your Data First!**
+Before updating, save your climbing data as merging could potentially overwrite your JSON files:
+
+1. **Download your data files** (if they exist):
+   - Go to your repository's `data` folder
+   - Right-click on `sessions.json` → "Save link as..." (if it exists)
+   - Right-click on `climbs.json` → "Save link as..." (if it exists)  
+   - Right-click on `training.json` → "Save link as..." (if it exists)
+   - Store these files safely on your computer
+
+2. **Check for updates**:
+   - Go to your forked repository on GitHub
+   - Look for a message that says "This branch is X commits behind tupacamaruiv:main"
+   - If you see this message, updates are available
+
+3. **Sync with main repository**:
+   - Click **"Sync fork"** button (appears when the main repo has updates)
+   - Review the changes that will be merged
+   - Click **"Update branch"** to merge the latest updates
+
+4. **Verify your app still works**:
+   - Wait 2-3 minutes for GitHub Pages to deploy the updates
+   - Test your app at `https://yourusername.github.io/climbing-logbook`
+   - Check that your data is still there in the Edit tab
+
+5. **Restore data if needed**:
+   - If any of your JSON files were overwritten (unlikely but possible):
+   - Go to your repository's `data` folder
+   - Click "Upload files" and re-upload your saved JSON files
+   - Or copy/paste the content back into the files manually
+
+*Note: We're working on a better solution that will protect your data automatically during updates.*
 
 ## How to Use Your Climbing Logger
 
@@ -239,20 +284,6 @@ You can view or download your data anytime:
 - ✅ **Built-in backup and version history** - never lose data
 - ✅ **Easy to export** - standard JSON format works everywhere
 - ✅ **Share with coaches or analysts** - just share the repository link
-
-## Updating Your App
-
-When new features are released:
-
-1. **Check for updates** - watch the original repository for new releases
-2. **Copy new code**: Get the updated `index.html` code
-3. **Update your file**:
-   - Go to your repository
-   - Click on `index.html`
-   - Click the pencil icon (Edit this file)
-   - Replace all content with the new code
-   - Click **"Commit changes"**
-4. **Wait for deployment** - 2-3 minutes for GitHub Pages to update
 
 ## Advanced Usage and Data Analysis
 
