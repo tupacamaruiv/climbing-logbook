@@ -1,6 +1,6 @@
 # Climbing Logger
 
-A clean, simple web app for tracking your bouldering sessions, individual climbs, and training progress. Log your data directly to GitHub and use your data to create visualizations of your climbing journey.
+A clean, simple web app for tracking your bouldering sessions, individual climbs, and training progress. Log your data directly to GitHub and use your data to create visualizations of your climbing journey. For information on the technical architecture and data structure, see the [technical documentation](https://github.com/tupacamaruiv/climbing-logbook/blob/main/TECHNICAL.md).
 
 ## Features
 
