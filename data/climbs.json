@@ -13,5 +13,19 @@
     "videos": "",
     "timestamp": "2025-09-26T01:13:25.145Z",
     "lastUpdated": "2025-09-27T00:45:15.122Z"
+  },
+  {
+    "climbId": "C1758934335470",
+    "sessionId": "S1758849068880",
+    "boulderName": "Strawberry Scoops",
+    "grade": "V6",
+    "gradeSystem": "V",
+    "sendStatus": "Attempt",
+    "isProject": false,
+    "attempts": 2,
+    "performanceHighlight": false,
+    "notes": "Possible project; a fun roof with scoopy pink holds. ",
+    "videos": "",
+    "timestamp": "2025-09-27T00:52:15.470Z"
   }
 ]
