@@ -167,22 +167,12 @@
             cursor: pointer;
         }
         
-        .star-rating {
-            display: flex;
-            gap: 4px;
-            margin-top: 8px;
-        }
-        
-        .star {
-            font-size: 1.5rem;
+        .checkbox-label {
+            margin: 0;
             cursor: pointer;
-            transition: transform 0.15s;
-            user-select: none;
+            font-weight: 500;
+            font-size: 0.875rem;
         }
-        
-        .star:hover { transform: scale(1.1); }
-        .star.active { color: #fbbf24; }
-        .star.inactive { color: #d1d5db; }
         
         .range-value {
             text-align: center;
@@ -426,14 +416,9 @@
                         <div class="range-value"><span id="rpeValue">5</span>/10</div>
                     </div>
                     <div class="form-group">
-                        <label>Session Rating</label>
-                        <div class="star-rating" id="sessionStars">
-                            <span class="star" onclick="setRating(1)">⭐</span>
-                            <span class="star" onclick="setRating(2)">⭐</span>
-                            <span class="star" onclick="setRating(3)">⭐</span>
-                            <span class="star" onclick="setRating(4)">⭐</span>
-                            <span class="star" onclick="setRating(5)">⭐</span>
-                        </div>
+                        <label>Session Rating (1-10)</label>
+                        <input type="range" id="sessionRating" min="1" max="10" value="5" />
+                        <div class="range-value"><span id="ratingValue">5</span>/10</div>
                     </div>
                     <div class="form-group">
                         <label>Notes</label>
@@ -486,7 +471,7 @@
                     <div class="form-group">
                         <div class="checkbox-group">
                             <input type="checkbox" id="isProject" class="checkbox" />
-                            <label for="isProject">This is a project</label>
+                            <label for="isProject" class="checkbox-label">This is a project</label>
                         </div>
                     </div>
                     <div class="form-group">
@@ -496,7 +481,7 @@
                     <div class="form-group">
                         <div class="checkbox-group">
                             <input type="checkbox" id="climbHighlight" class="checkbox" />
-                            <label for="climbHighlight">Performance Highlight</label>
+                            <label for="climbHighlight" class="checkbox-label">Performance Highlight</label>
                         </div>
                     </div>
                     <div class="form-group">
@@ -532,7 +517,7 @@
                     <div class="form-group">
                         <div class="checkbox-group">
                             <input type="checkbox" id="trainingHighlight" class="checkbox" />
-                            <label for="trainingHighlight">Performance Highlight (PR, etc.)</label>
+                            <label for="trainingHighlight" class="checkbox-label">Performance Highlight (PR, etc.)</label>
                         </div>
                     </div>
                     <div class="form-group">
@@ -559,7 +544,7 @@
                     <div id="editFormContainer" style="display: none;">
                         <div id="editFields"></div>
                         <button class="button" onclick="updateEntry()">Update Entry</button>
-                        <button class="button delete" onclick="showDeleteConfirmation()">Delete Entry</button>
+                        <button class="button delete" id="deleteButton" onclick="showDeleteConfirmation()" style="display: none;">Delete Entry</button>
                     </div>
                 </div>
             </div>
@@ -581,8 +566,8 @@
     </div>
 
     <script>
-        let currentRating = 0;
-        let editRating = 0;
+        let currentRating = 5;
+        let editRating = 5;
         let existingBoulderNames = [];
         let selectedEditItem = null;
         let currentEditData = [];
@@ -604,8 +589,15 @@
                 showMainApp();
             }
 
+            // RPE slider
             document.getElementById('sessionRPE').addEventListener('input', function() {
                 document.getElementById('rpeValue').textContent = this.value;
+            });
+
+            // Rating slider (replacing stars)
+            document.getElementById('sessionRating').addEventListener('input', function() {
+                document.getElementById('ratingValue').textContent = this.value;
+                currentRating = parseInt(this.value);
             });
         }
 
@@ -673,19 +665,13 @@
             document.getElementById(tab + '-form').classList.add('active');
 
             if (tab === 'climb') loadSessions();
-        }
-
-        function setRating(rating) {
-            currentRating = rating;
-            updateStars('#sessionStars', rating);
-        }
-
-        function updateStars(selector, rating) {
-            const stars = document.querySelectorAll(selector + ' .star');
-            stars.forEach((star, index) => {
-                star.classList.toggle('active', index < rating);
-                star.classList.toggle('inactive', index >= rating);
-            });
+            if (tab === 'edit') {
+                // Reset edit form when switching to edit tab
+                document.getElementById('editType').value = '';
+                document.getElementById('recentItems').style.display = 'none';
+                document.getElementById('editFormContainer').style.display = 'none';
+                document.getElementById('deleteButton').style.display = 'none';
+            }
         }
 
         function fillToday() {
@@ -779,7 +765,7 @@
                 date: document.getElementById('sessionDate').value,
                 location: document.getElementById('sessionLocation').value,
                 rpe: parseInt(document.getElementById('sessionRPE').value),
-                stars: currentRating,
+                rating: currentRating,
                 notes: document.getElementById('sessionNotes').value,
                 videos: document.getElementById('sessionVideos').value,
                 timestamp: new Date().toISOString()
@@ -913,6 +899,7 @@
             if (!type) {
                 document.getElementById('recentItems').style.display = 'none';
                 document.getElementById('editFormContainer').style.display = 'none';
+                document.getElementById('deleteButton').style.display = 'none';
                 return;
             }
 
@@ -958,7 +945,7 @@
 
                     if (type === 'sessions') {
                         title = `${item.date} - ${item.location}`;
-                        subtitle = `RPE: ${item.rpe || 'Not set'} • ${item.stars ? '⭐'.repeat(item.stars) : 'No rating'}`;
+                        subtitle = `RPE: ${item.rpe || 'Not set'} • Rating: ${item.rating || item.stars || 'Not set'}/10`;
                     } else if (type === 'climbs') {
                         title = `${item.boulderName} (${item.grade})`;
                         subtitle = `${item.sendStatus} • ${item.isProject ? 'Project' : 'Regular'}`;
@@ -1002,14 +989,9 @@
                         <div class="range-value"><span id="editRPEValue">${item.rpe || 5}</span>/10</div>
                     </div>
                     <div class="form-group">
-                        <label>Session Rating</label>
-                        <div class="star-rating" id="editSessionStars">
-                            <span class="star" onclick="setEditRating(1)">⭐</span>
-                            <span class="star" onclick="setEditRating(2)">⭐</span>
-                            <span class="star" onclick="setEditRating(3)">⭐</span>
-                            <span class="star" onclick="setEditRating(4)">⭐</span>
-                            <span class="star" onclick="setEditRating(5)">⭐</span>
-                        </div>
+                        <label>Session Rating (1-10)</label>
+                        <input type="range" id="editSessionRating" min="1" max="10" value="${item.rating || item.stars || 5}" />
+                        <div class="range-value"><span id="editRatingValue">${item.rating || item.stars || 5}</span>/10</div>
                     </div>
                     <div class="form-group">
                         <label>Notes</label>
@@ -1020,19 +1002,19 @@
                         <input type="url" id="editSessionVideos" value="${item.videos || ''}" />
                     </div>
                 `;
-                editRating = item.stars || 0;
+                editRating = item.rating || item.stars || 5;
             } else if (type === 'climbs') {
                 fieldsHTML = `
                     <div class="form-group">
                         <div class="checkbox-group">
-                            <input type="checkbox" id="editIsProject" ${item.isProject ? 'checked' : ''} />
-                            <label for="editIsProject">This is a project</label>
+                            <input type="checkbox" id="editIsProject" class="checkbox" ${item.isProject ? 'checked' : ''} />
+                            <label for="editIsProject" class="checkbox-label">This is a project</label>
                         </div>
                     </div>
                     <div class="form-group">
                         <div class="checkbox-group">
-                            <input type="checkbox" id="editClimbHighlight" ${item.performanceHighlight ? 'checked' : ''} />
-                            <label for="editClimbHighlight">Performance Highlight</label>
+                            <input type="checkbox" id="editClimbHighlight" class="checkbox" ${item.performanceHighlight ? 'checked' : ''} />
+                            <label for="editClimbHighlight" class="checkbox-label">Performance Highlight</label>
                         </div>
                     </div>
                     <div class="form-group">
@@ -1052,8 +1034,8 @@
                     </div>
                     <div class="form-group">
                         <div class="checkbox-group">
-                            <input type="checkbox" id="editTrainingHighlight" ${item.performanceHighlight ? 'checked' : ''} />
-                            <label for="editTrainingHighlight">Performance Highlight</label>
+                            <input type="checkbox" id="editTrainingHighlight" class="checkbox" ${item.performanceHighlight ? 'checked' : ''} />
+                            <label for="editTrainingHighlight" class="checkbox-label">Performance Highlight</label>
                         </div>
                     </div>
                     <div class="form-group">
@@ -1065,19 +1047,18 @@
 
             container.innerHTML = fieldsHTML;
             document.getElementById('editFormContainer').style.display = 'block';
+            document.getElementById('deleteButton').style.display = 'block';
 
             // Setup event listeners for new elements
             if (type === 'sessions') {
                 document.getElementById('editSessionRPE').addEventListener('input', function() {
                     document.getElementById('editRPEValue').textContent = this.value;
                 });
-                updateStars('#editSessionStars', editRating);
+                document.getElementById('editSessionRating').addEventListener('input', function() {
+                    document.getElementById('editRatingValue').textContent = this.value;
+                    editRating = parseInt(this.value);
+                });
             }
-        }
-
-        function setEditRating(rating) {
-            editRating = rating;
-            updateStars('#editSessionStars', rating);
         }
 
         async function updateEntry() {
@@ -1090,6 +1071,8 @@
 
             if (type === 'sessions') {
                 selectedEditItem.rpe = parseInt(document.getElementById('editSessionRPE').value);
+                selectedEditItem.rating = editRating;
+                // Keep backward compatibility with old star system
                 selectedEditItem.stars = editRating;
                 selectedEditItem.notes = document.getElementById('editSessionNotes').value;
                 selectedEditItem.videos = document.getElementById('editSessionVideos').value;
@@ -1108,8 +1091,26 @@
 
             if (await updateGitHubFile(type + '.json', currentEditData)) {
                 showStatus('Entry updated successfully! 🎉', 'success');
+                
+                // Clear the edit form
+                clearEditForm();
+                
+                // Reload the edit data to refresh the list
                 loadEditData();
             }
+        }
+
+        function clearEditForm() {
+            const container = document.getElementById('editFields');
+            container.innerHTML = '';
+            document.getElementById('editFormContainer').style.display = 'none';
+            document.getElementById('deleteButton').style.display = 'none';
+            selectedEditItem = null;
+            
+            // Remove selection from items
+            document.querySelectorAll('.edit-item').forEach(item => {
+                item.classList.remove('selected');
+            });
         }
 
         async function updateGitHubFile(filename, data) {
@@ -1178,7 +1179,7 @@
             if (await updateGitHubFile(type + '.json', currentEditData)) {
                 showStatus('Entry deleted successfully', 'success');
                 hideDeleteConfirmation();
-                document.getElementById('editFormContainer').style.display = 'none';
+                clearEditForm();
                 loadEditData();
             }
         }
@@ -1186,9 +1187,11 @@
         function clearSessionForm() {
             document.getElementById('sessionNotes').value = '';
             document.getElementById('sessionVideos').value = '';
-            setRating(0);
             document.getElementById('sessionRPE').value = 5;
             document.getElementById('rpeValue').textContent = '5';
+            document.getElementById('sessionRating').value = 5;
+            document.getElementById('ratingValue').textContent = '5';
+            currentRating = 5;
         }
 
         function clearClimbForm() {
