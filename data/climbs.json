@@ -112,5 +112,19 @@
     "notes": "Fun climb! ",
     "videos": "",
     "timestamp": "2025-09-28T15:41:42.246Z"
+  },
+  {
+    "climbId": "C1759074535741",
+    "sessionId": "S1759061957628",
+    "boulderName": "DK9",
+    "grade": "B0",
+    "gradeSystem": "B",
+    "sendStatus": "Flash",
+    "isProject": false,
+    "attempts": 1,
+    "performanceHighlight": false,
+    "notes": "",
+    "videos": "",
+    "timestamp": "2025-09-28T15:48:55.741Z"
   }
 ]
