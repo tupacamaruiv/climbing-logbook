@@ -56,5 +56,19 @@
     "notes": "Overcooked as hell. Hard. ",
     "videos": "",
     "timestamp": "2025-09-28T15:04:23.008Z"
+  },
+  {
+    "climbId": "C1759072583753",
+    "sessionId": "S1759061957628",
+    "boulderName": "2008 Jeep Grand Cherokee ",
+    "grade": "B2",
+    "gradeSystem": "B",
+    "sendStatus": "Gave Up",
+    "isProject": false,
+    "attempts": 3,
+    "performanceHighlight": false,
+    "notes": "Hard one. ",
+    "videos": "",
+    "timestamp": "2025-09-28T15:16:23.753Z"
   }
 ]
