@@ -126,5 +126,19 @@
     "notes": "",
     "videos": "",
     "timestamp": "2025-09-28T15:48:55.741Z"
+  },
+  {
+    "climbId": "C1759094513991",
+    "sessionId": "S1759094405838",
+    "boulderName": "Sirens of Titan",
+    "grade": "B3",
+    "gradeSystem": "B",
+    "sendStatus": "Attempt",
+    "isProject": true,
+    "attempts": 4,
+    "performanceHighlight": false,
+    "notes": "New board project! ",
+    "videos": "",
+    "timestamp": "2025-09-28T21:21:53.992Z"
   }
 ]
