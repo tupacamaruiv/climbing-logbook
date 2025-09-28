@@ -70,5 +70,19 @@
     "notes": "Hard one. ",
     "videos": "",
     "timestamp": "2025-09-28T15:16:23.753Z"
+  },
+  {
+    "climbId": "C1759073099466",
+    "sessionId": "S1759061957628",
+    "boulderName": "Wrastlin",
+    "grade": "B2",
+    "gradeSystem": "B",
+    "sendStatus": "Gave Up",
+    "isProject": false,
+    "attempts": 3,
+    "performanceHighlight": false,
+    "notes": "Burly. Hard! ",
+    "videos": "",
+    "timestamp": "2025-09-28T15:24:59.466Z"
   }
 ]
