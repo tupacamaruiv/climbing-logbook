@@ -42,5 +42,19 @@
     "notes": "First peak midlo board climb.",
     "videos": "",
     "timestamp": "2025-09-28T15:03:32.175Z"
+  },
+  {
+    "climbId": "C1759071863008",
+    "sessionId": "S1759061957628",
+    "boulderName": "Optometric Diopeter",
+    "grade": "B1",
+    "gradeSystem": "B",
+    "sendStatus": "Gave Up",
+    "isProject": false,
+    "attempts": 3,
+    "performanceHighlight": false,
+    "notes": "Overcooked as hell. Hard. ",
+    "videos": "",
+    "timestamp": "2025-09-28T15:04:23.008Z"
   }
 ]
