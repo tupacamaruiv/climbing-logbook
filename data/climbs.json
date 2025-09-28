@@ -98,5 +98,19 @@
     "notes": "Fun climb. Good holds ",
     "videos": "",
     "timestamp": "2025-09-28T15:36:14.848Z"
+  },
+  {
+    "climbId": "C1759074102246",
+    "sessionId": "S1759061957628",
+    "boulderName": "DK8",
+    "grade": "B1",
+    "gradeSystem": "B",
+    "sendStatus": "Send",
+    "isProject": false,
+    "attempts": 2,
+    "performanceHighlight": false,
+    "notes": "Fun climb! ",
+    "videos": "",
+    "timestamp": "2025-09-28T15:41:42.246Z"
   }
 ]
