@@ -140,5 +140,19 @@
     "notes": "New board project! ",
     "videos": "",
     "timestamp": "2025-09-28T21:21:53.992Z"
+  },
+  {
+    "climbId": "C1759150317723",
+    "sessionId": "S1759094405838",
+    "boulderName": "Shelf Life",
+    "grade": "B3",
+    "gradeSystem": "B",
+    "sendStatus": "Attempt",
+    "isProject": true,
+    "attempts": 4,
+    "performanceHighlight": false,
+    "notes": "Another climb to send at 30 degrees. ",
+    "videos": "",
+    "timestamp": "2025-09-29T12:51:57.723Z"
   }
 ]
