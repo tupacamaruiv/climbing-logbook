@@ -154,5 +154,19 @@
     "notes": "Another climb to send at 30 degrees. ",
     "videos": "",
     "timestamp": "2025-09-29T12:51:57.723Z"
+  },
+  {
+    "climbId": "C1759228063270",
+    "sessionId": "S1759226459061",
+    "boulderName": "Earl grey, warm",
+    "grade": "B2",
+    "gradeSystem": "B",
+    "sendStatus": "Send",
+    "isProject": false,
+    "attempts": 2,
+    "performanceHighlight": true,
+    "notes": "Big move felt good! ",
+    "videos": "",
+    "timestamp": "2025-09-30T10:27:43.270Z"
   }
 ]
