@@ -168,5 +168,19 @@
     "notes": "Big move felt good! ",
     "videos": "",
     "timestamp": "2025-09-30T10:27:43.270Z"
+  },
+  {
+    "climbId": "C1759232138381",
+    "sessionId": "S1759226459061",
+    "boulderName": "Sirens of Titan",
+    "grade": "B3",
+    "gradeSystem": "B",
+    "sendStatus": "Attempt",
+    "isProject": true,
+    "attempts": 6,
+    "performanceHighlight": false,
+    "notes": "Continued work on project. Made start move and linked to middle. Need to sort beta on second to last high right hand move. Good progress! ",
+    "videos": "",
+    "timestamp": "2025-09-30T11:35:38.381Z"
   }
 ]
