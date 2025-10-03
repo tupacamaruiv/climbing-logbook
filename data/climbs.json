@@ -183,5 +183,19 @@
     "videos": "https://www.instagram.com/reel/DPOkagvkTB4p4pfFTtu2AqkXT0IxUd5t4L-ruo0/?igsh=MWhzbTludnF2azJyYw==",
     "timestamp": "2025-09-30T11:35:38.381Z",
     "lastUpdated": "2025-09-30T13:29:46.764Z"
+  },
+  {
+    "climbId": "C1759490321419",
+    "sessionId": "S1759424452092",
+    "boulderName": "Tighty Whities",
+    "grade": "V6",
+    "gradeSystem": "V",
+    "sendStatus": "Attempt",
+    "isProject": false,
+    "attempts": 6,
+    "performanceHighlight": false,
+    "notes": "Solid progress sticking more of the moves including the nemesis high left step to pull up and over the roof section. ",
+    "videos": "",
+    "timestamp": "2025-10-03T11:18:41.419Z"
   }
 ]
