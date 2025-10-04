@@ -198,5 +198,19 @@
     "videos": "https://www.instagram.com/reel/DPWO0hljm26w2QmpCyTQ3fQLvqtYt3UmdLr6EM0/?igsh=MXRteDB5b2NjbjF3bA==",
     "timestamp": "2025-10-03T11:18:41.419Z",
     "lastUpdated": "2025-10-04T11:03:43.150Z"
+  },
+  {
+    "climbId": "C1759610052995",
+    "sessionId": "S1759610012279",
+    "boulderName": "Tighty Whities",
+    "grade": "V6",
+    "gradeSystem": "V",
+    "sendStatus": "Attempt",
+    "isProject": true,
+    "attempts": 2,
+    "performanceHighlight": true,
+    "notes": "Climbed the top section for the first time! ",
+    "videos": "",
+    "timestamp": "2025-10-04T20:34:12.995Z"
   }
 ]
