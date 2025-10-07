@@ -213,5 +213,19 @@
     "videos": "https://www.instagram.com/reel/DPaRcIRCI3AQIFrdhibZZy6gWsXzJ2PJCb7ACE0/?igsh=MXZ5MjEwZTg5eGVrdA==",
     "timestamp": "2025-10-04T20:34:12.995Z",
     "lastUpdated": "2025-10-05T12:00:15.255Z"
+  },
+  {
+    "climbId": "C1759844860165",
+    "sessionId": "S1759844807331",
+    "boulderName": "Sirens of Titan",
+    "grade": "B3",
+    "gradeSystem": "B",
+    "sendStatus": "Attempt",
+    "isProject": true,
+    "attempts": 6,
+    "performanceHighlight": false,
+    "notes": "Good progress working on the final two moves. Need to link these to the top then try and start making send attempts! ",
+    "videos": "",
+    "timestamp": "2025-10-07T13:47:40.165Z"
   }
 ]
