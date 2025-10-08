@@ -25,5 +25,14 @@
     "performanceHighlight": true,
     "notes": "PR 32.5, but may need to drop weight a bit as left hand break was breaking slightly. ",
     "timestamp": "2025-10-01T12:23:01.224Z"
+  },
+  {
+    "trainingId": "T1759926573287",
+    "date": "2025-10-08",
+    "exercise": "20mm Lift",
+    "weight": 30,
+    "performanceHighlight": false,
+    "notes": "Slightly lower weight today but owned it. ",
+    "timestamp": "2025-10-08T12:29:33.287Z"
   }
 ]
