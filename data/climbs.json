@@ -241,5 +241,19 @@
     "notes": "Solid performance linking from the roof to the top. Making send attempts and sticking the steep hold under the roof. Close to sending! ",
     "videos": "",
     "timestamp": "2025-10-11T22:11:18.158Z"
+  },
+  {
+    "climbId": "C1760408593674",
+    "sessionId": "S1760408543655",
+    "boulderName": "Tighty Whities",
+    "grade": "V6",
+    "gradeSystem": "V",
+    "sendStatus": "Send",
+    "isProject": true,
+    "attempts": 2,
+    "performanceHighlight": true,
+    "notes": "Project sent! Sent on 2nd attempt. ",
+    "videos": "",
+    "timestamp": "2025-10-14T02:23:13.674Z"
   }
 ]
