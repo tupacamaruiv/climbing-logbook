@@ -255,5 +255,19 @@
     "notes": "Project sent! Sent on 2nd attempt. ",
     "videos": "",
     "timestamp": "2025-10-14T02:23:13.674Z"
+  },
+  {
+    "climbId": "C1760569876335",
+    "sessionId": "S1760569791048",
+    "boulderName": "Sirens of Titan",
+    "grade": "B3",
+    "gradeSystem": "B",
+    "sendStatus": "Attempt",
+    "isProject": true,
+    "attempts": 3,
+    "performanceHighlight": false,
+    "notes": "Overall very weak. Unable to do most moves. Today was not my today so will just have to come back to it. ",
+    "videos": "",
+    "timestamp": "2025-10-15T23:11:16.335Z"
   }
 ]
