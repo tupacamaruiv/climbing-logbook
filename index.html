@@ -513,7 +513,7 @@
                     </div>
                     <div class="form-group">
                         <label>Working Weight (lbs)</label>
-                        <input type="number" id="weight" min="0" placeholder="e.g., 225" required />
+                        <input type="number" id="weight" min="0" step="0.5" placeholder="e.g., 225 or 32.5" required />
                     </div>
                     <div class="form-group">
                         <div class="checkbox-group">
@@ -573,6 +573,7 @@
         let selectedEditItem = null;
         let currentEditData = [];
         let currentEditIndex = -1;
+        let availableSessions = [];
 
         document.addEventListener('DOMContentLoaded', initializeApp);
 
@@ -590,12 +591,10 @@
                 showMainApp();
             }
 
-            // RPE slider
             document.getElementById('sessionRPE').addEventListener('input', function() {
                 document.getElementById('rpeValue').textContent = this.value;
             });
 
-            // Rating slider (replacing stars)
             document.getElementById('sessionRating').addEventListener('input', function() {
                 document.getElementById('ratingValue').textContent = this.value;
                 currentRating = parseInt(this.value);
@@ -667,7 +666,6 @@
 
             if (tab === 'climb') loadSessions();
             if (tab === 'edit') {
-                // Reset edit form when switching to edit tab
                 document.getElementById('editType').value = '';
                 document.getElementById('recentItems').style.display = 'none';
                 document.getElementById('editFormContainer').style.display = 'none';
@@ -700,6 +698,7 @@
                 if (response.ok) {
                     const data = await response.json();
                     const sessions = JSON.parse(atob(data.content));
+                    availableSessions = sessions;
                     updateSessionDropdown(sessions);
                 }
             } catch (error) {
@@ -736,7 +735,22 @@
                 if (response.ok) {
                     const data = await response.json();
                     const climbs = JSON.parse(atob(data.content));
-                    existingBoulderNames = [...new Set(climbs.map(c => c.boulderName))].filter(Boolean);
+                    
+                    const sortedClimbs = climbs.sort((a, b) => 
+                        new Date(b.timestamp) - new Date(a.timestamp)
+                    );
+                    
+                    const seen = new Set();
+                    existingBoulderNames = sortedClimbs
+                        .map(c => c.boulderName)
+                        .filter(name => {
+                            if (name && !seen.has(name)) {
+                                seen.add(name);
+                                return true;
+                            }
+                            return false;
+                        });
+                    
                     updateBoulderNameDisplay();
                 }
             } catch (error) {
@@ -750,7 +764,7 @@
 
             if (existingBoulderNames.length > 0) {
                 existingDiv.style.display = 'block';
-                tagsDiv.innerHTML = existingBoulderNames.slice(-10).reverse().map(name => 
+                tagsDiv.innerHTML = existingBoulderNames.slice(0, 10).map(name => 
                     `<span class="name-tag" onclick="selectBoulderName('${name}')">${name}</span>`
                 ).join('');
             }
@@ -823,7 +837,7 @@
                 trainingId: 'T' + Date.now(),
                 date: document.getElementById('trainingDate').value,
                 exercise: document.getElementById('exercise').value,
-                weight: parseInt(document.getElementById('weight').value),
+                weight: parseFloat(document.getElementById('weight').value),
                 performanceHighlight: document.getElementById('trainingHighlight').checked,
                 notes: document.getElementById('trainingNotes').value,
                 timestamp: new Date().toISOString()
@@ -917,12 +931,11 @@
                     const data = await response.json();
                     currentEditData = JSON.parse(atob(data.content));
                     
-                    // Show recent entries (last 10 or past week)
                     const weekAgo = new Date(Date.now() - 7 * 24 * 60 * 60 * 1000);
                     const recentItems = currentEditData.filter(item => {
                         const itemDate = new Date(item.date || item.timestamp);
                         return itemDate >= weekAgo;
-                    }).slice(-10);
+                    }).slice(-10).reverse();
 
                     displayEditItems(type, recentItems);
                 } else {
@@ -940,7 +953,9 @@
             if (items.length === 0) {
                 container.innerHTML = '<p style="color: #6b7280;">No recent entries found</p>';
             } else {
-                container.innerHTML = items.map((item, index) => {
+                const startIndex = currentEditData.length - items.length;
+                container.innerHTML = items.map((item, relativeIndex) => {
+                    const actualIndex = startIndex + (items.length - 1 - relativeIndex);
                     let title = '';
                     let subtitle = '';
 
@@ -956,7 +971,7 @@
                     }
 
                     return `
-                        <div class="edit-item" onclick="selectEditItem(${currentEditData.length - items.length + index}, '${type}')">
+                        <div class="edit-item" onclick="selectEditItem(${actualIndex}, '${type}')">
                             <h5>${title}</h5>
                             <p>${subtitle}</p>
                         </div>
@@ -971,9 +986,10 @@
             selectedEditItem = currentEditData[index];
             currentEditIndex = index;
 
-            document.querySelectorAll('.edit-item').forEach((item, i) => {
-                item.classList.toggle('selected', i === (index - (currentEditData.length - document.querySelectorAll('.edit-item').length)));
+            document.querySelectorAll('.edit-item').forEach(item => {
+                item.classList.remove('selected');
             });
+            event.target.closest('.edit-item').classList.add('selected');
 
             showEditForm(type, selectedEditItem);
         }
@@ -984,6 +1000,20 @@
 
             if (type === 'sessions') {
                 fieldsHTML = `
+                    <div class="form-group">
+                        <label>Date</label>
+                        <input type="date" id="editSessionDate" value="${item.date || ''}" />
+                    </div>
+                    <div class="form-group">
+                        <label>Location</label>
+                        <select id="editSessionLocation">
+                            <option value="">Choose location...</option>
+                            <option value="Peak Boulders" ${item.location === 'Peak Boulders' ? 'selected' : ''}>Peak Boulders</option>
+                            <option value="Peak Midlo Board" ${item.location === 'Peak Midlo Board' ? 'selected' : ''}>Peak Midlo Board</option>
+                            <option value="Triangle Boulders" ${item.location === 'Triangle Boulders' ? 'selected' : ''}>Triangle Boulders</option>
+                            <option value="Triangle Board" ${item.location === 'Triangle Board' ? 'selected' : ''}>Triangle Board</option>
+                        </select>
+                    </div>
                     <div class="form-group">
                         <label>Session RPE (1-10)</label>
                         <input type="range" id="editSessionRPE" min="1" max="10" value="${item.rpe || 5}" />
@@ -1005,7 +1035,48 @@
                 `;
                 editRating = item.rating || item.stars || 5;
             } else if (type === 'climbs') {
+                const session = availableSessions.find(s => s.sessionId === item.sessionId);
+                const sessionDisplay = session ? `${session.date} - ${session.location}` : item.sessionId;
+                
                 fieldsHTML = `
+                    <div class="form-group">
+                        <label>Session</label>
+                        <select id="editClimbSession">
+                            ${availableSessions.map(s => `
+                                <option value="${s.sessionId}" ${s.sessionId === item.sessionId ? 'selected' : ''}>
+                                    ${s.date} - ${s.location}
+                                </option>
+                            `).join('')}
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label>Boulder Name</label>
+                        <input type="text" id="editBoulderName" value="${item.boulderName || ''}" />
+                    </div>
+                    <div class="form-group">
+                        <label>Grade</label>
+                        <input type="text" id="editClimbGrade" value="${item.grade || ''}" />
+                    </div>
+                    <div class="form-group">
+                        <label>Grade System</label>
+                        <select id="editGradeSystem">
+                            <option value="V" ${item.gradeSystem === 'V' ? 'selected' : ''}>V-Scale</option>
+                            <option value="B" ${item.gradeSystem === 'B' ? 'selected' : ''}>B-Scale</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label>Send Status</label>
+                        <select id="editSendStatus">
+                            <option value="Flash" ${item.sendStatus === 'Flash' ? 'selected' : ''}>Flash</option>
+                            <option value="Send" ${item.sendStatus === 'Send' ? 'selected' : ''}>Send</option>
+                            <option value="Attempt" ${item.sendStatus === 'Attempt' ? 'selected' : ''}>Attempt</option>
+                            <option value="Gave Up" ${item.sendStatus === 'Gave Up' ? 'selected' : ''}>Gave Up</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label>Attempts This Session</label>
+                        <input type="number" id="editAttempts" min="1" value="${item.attempts || 1}" />
+                    </div>
                     <div class="form-group">
                         <div class="checkbox-group">
                             <input type="checkbox" id="editIsProject" class="checkbox" ${item.isProject ? 'checked' : ''} />
@@ -1030,8 +1101,20 @@
             } else if (type === 'training') {
                 fieldsHTML = `
                     <div class="form-group">
+                        <label>Date</label>
+                        <input type="date" id="editTrainingDate" value="${item.date || ''}" />
+                    </div>
+                    <div class="form-group">
+                        <label>Exercise</label>
+                        <select id="editExercise">
+                            <option value="Deadlift" ${item.exercise === 'Deadlift' ? 'selected' : ''}>Deadlift</option>
+                            <option value="Squat" ${item.exercise === 'Squat' ? 'selected' : ''}>Squat</option>
+                            <option value="20mm Lift" ${item.exercise === '20mm Lift' ? 'selected' : ''}>20mm Lift</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
                         <label>Working Weight (lbs)</label>
-                        <input type="number" id="editWeight" min="0" value="${item.weight || ''}" />
+                        <input type="number" id="editWeight" min="0" step="0.5" value="${item.weight || ''}" />
                     </div>
                     <div class="form-group">
                         <div class="checkbox-group">
@@ -1050,7 +1133,6 @@
             document.getElementById('editFormContainer').style.display = 'block';
             document.getElementById('deleteButton').style.display = 'block';
 
-            // Setup event listeners for new elements
             if (type === 'sessions') {
                 document.getElementById('editSessionRPE').addEventListener('input', function() {
                     document.getElementById('editRPEValue').textContent = this.value;
@@ -1071,19 +1153,28 @@
             const type = document.getElementById('editType').value;
 
             if (type === 'sessions') {
+                selectedEditItem.date = document.getElementById('editSessionDate').value;
+                selectedEditItem.location = document.getElementById('editSessionLocation').value;
                 selectedEditItem.rpe = parseInt(document.getElementById('editSessionRPE').value);
                 selectedEditItem.rating = editRating;
-                // Keep backward compatibility with old star system
                 selectedEditItem.stars = editRating;
                 selectedEditItem.notes = document.getElementById('editSessionNotes').value;
                 selectedEditItem.videos = document.getElementById('editSessionVideos').value;
             } else if (type === 'climbs') {
+                selectedEditItem.sessionId = document.getElementById('editClimbSession').value;
+                selectedEditItem.boulderName = document.getElementById('editBoulderName').value;
+                selectedEditItem.grade = document.getElementById('editClimbGrade').value;
+                selectedEditItem.gradeSystem = document.getElementById('editGradeSystem').value;
+                selectedEditItem.sendStatus = document.getElementById('editSendStatus').value;
+                selectedEditItem.attempts = parseInt(document.getElementById('editAttempts').value);
                 selectedEditItem.isProject = document.getElementById('editIsProject').checked;
                 selectedEditItem.performanceHighlight = document.getElementById('editClimbHighlight').checked;
                 selectedEditItem.notes = document.getElementById('editClimbNotes').value;
                 selectedEditItem.videos = document.getElementById('editClimbVideos').value;
             } else if (type === 'training') {
-                selectedEditItem.weight = parseInt(document.getElementById('editWeight').value);
+                selectedEditItem.date = document.getElementById('editTrainingDate').value;
+                selectedEditItem.exercise = document.getElementById('editExercise').value;
+                selectedEditItem.weight = parseFloat(document.getElementById('editWeight').value);
                 selectedEditItem.performanceHighlight = document.getElementById('editTrainingHighlight').checked;
                 selectedEditItem.notes = document.getElementById('editTrainingNotes').value;
             }
@@ -1092,12 +1183,9 @@
 
             if (await updateGitHubFile(type + '.json', currentEditData)) {
                 showStatus('Entry updated successfully! 🎉', 'success');
-                
-                // Clear the edit form
                 clearEditForm();
-                
-                // Reload the edit data to refresh the list
                 loadEditData();
+                if (type === 'climbs') loadBoulderNames();
             }
         }
 
@@ -1108,7 +1196,6 @@
             document.getElementById('deleteButton').style.display = 'none';
             selectedEditItem = null;
             
-            // Remove selection from items
             document.querySelectorAll('.edit-item').forEach(item => {
                 item.classList.remove('selected');
             });
@@ -1174,7 +1261,6 @@
         async function confirmDelete() {
             const type = document.getElementById('editType').value;
             
-            // Remove the item from the array
             currentEditData.splice(currentEditIndex, 1);
             
             if (await updateGitHubFile(type + '.json', currentEditData)) {
@@ -1182,6 +1268,7 @@
                 hideDeleteConfirmation();
                 clearEditForm();
                 loadEditData();
+                if (type === 'climbs') loadBoulderNames();
             }
         }
 
