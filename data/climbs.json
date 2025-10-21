@@ -297,5 +297,19 @@
     "notes": "A possible project on a V5+ set by Augie. Steep roof that starts with a large left heel hook.",
     "videos": "",
     "timestamp": "2025-10-19T18:53:16.583Z"
+  },
+  {
+    "climbId": "C1761045382772",
+    "sessionId": "S1761045333901",
+    "boulderName": "Sirens of Titan",
+    "grade": "B3",
+    "gradeSystem": "B",
+    "sendStatus": "Attempt",
+    "isProject": true,
+    "attempts": 5,
+    "performanceHighlight": false,
+    "notes": "Still need to link last two moves. Rest of the moves complete!",
+    "videos": "",
+    "timestamp": "2025-10-21T11:16:22.772Z"
   }
 ]
