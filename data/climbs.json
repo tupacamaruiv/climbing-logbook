@@ -311,5 +311,19 @@
     "notes": "Still need to link last two moves. Rest of the moves complete!",
     "videos": "",
     "timestamp": "2025-10-21T11:16:22.772Z"
+  },
+  {
+    "climbId": "C1761327907974",
+    "sessionId": "S1761327836857",
+    "boulderName": "Pocket Paradise",
+    "grade": "V6",
+    "gradeSystem": "V",
+    "sendStatus": "Attempt",
+    "isProject": true,
+    "attempts": 5,
+    "performanceHighlight": false,
+    "notes": "Completed all the moves. Sorted out crux beta to get right foot on the wall. Linked from middle of the climb to the top. ",
+    "videos": "https://www.instagram.com/reel/DQMQ-pfjibCwKoJ2yCx9EMogoawr922HBsTgko0/?igsh=cWhrYmtzMzRkcmlt",
+    "timestamp": "2025-10-24T17:45:07.974Z"
   }
 ]
