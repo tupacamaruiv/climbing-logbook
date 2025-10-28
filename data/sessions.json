@@ -161,10 +161,12 @@
     "sessionId": "S1761643596394",
     "date": "2025-10-28",
     "location": "Triangle Board",
-    "rpe": 5,
-    "rating": 5,
-    "notes": "",
+    "rpe": 9,
+    "rating": 6,
+    "notes": "Tough session was not feeling strong or snappy. Transitioned from board to boulders halfway through. ",
     "videos": "",
-    "timestamp": "2025-10-28T09:26:36.394Z"
+    "timestamp": "2025-10-28T09:26:36.394Z",
+    "stars": 6,
+    "lastUpdated": "2025-10-28T14:39:37.873Z"
   }
 ]
