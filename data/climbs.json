@@ -381,5 +381,19 @@
     "notes": "2nd session on this roof prow problem with a successful send",
     "videos": "",
     "timestamp": "2025-11-03T15:30:21.896Z"
+  },
+  {
+    "climbId": "C1762183880687",
+    "sessionId": "S1762183745137",
+    "boulderName": "The Heel Deal",
+    "grade": "V5",
+    "gradeSystem": "V",
+    "sendStatus": "Attempt",
+    "isProject": true,
+    "attempts": 5,
+    "performanceHighlight": false,
+    "notes": "Still slow progress on this one. Struggling to make second move but starting to understand the position better.",
+    "videos": "",
+    "timestamp": "2025-11-03T15:31:20.687Z"
   }
 ]
