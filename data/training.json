@@ -107,5 +107,14 @@
     "performanceHighlight": true,
     "notes": "Best lift in months at hotel gym. Fingers feeling good ",
     "timestamp": "2025-11-06T11:28:25.413Z"
+  },
+  {
+    "trainingId": "T1762949579507",
+    "date": "2025-11-12",
+    "exercise": "Deadlift",
+    "weight": 215,
+    "performanceHighlight": false,
+    "notes": "Lifts felt good. ",
+    "timestamp": "2025-11-12T12:12:59.507Z"
   }
 ]
