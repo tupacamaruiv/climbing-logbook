@@ -535,8 +535,22 @@
     "isProject": false,
     "attempts": 8,
     "performanceHighlight": false,
-    "notes": "2nd session on this climb. Another problem set by Augie. Every move is challenging and it’s hard to find bits of progress. Felt slightly better on the starting moves. Will likely need to put more focus on the top moves and start there next session. Will take another session or two to decide if I really want to commit to this one as other holds near the top moves felt like they were interfering with the actual holds and movement leading to some uncontrolled falls. ",
+    "notes": "2nd session on this climb. Another problem set by Augie. Every move is challenging and itâs hard to find bits of progress. Felt slightly better on the starting moves. Will likely need to put more focus on the top moves and start there next session. Will take another session or two to decide if I really want to commit to this one as other holds near the top moves felt like they were interfering with the actual holds and movement leading to some uncontrolled falls. ",
     "videos": "",
     "timestamp": "2025-12-06T23:15:35.858Z"
+  },
+  {
+    "climbId": "C1766273696464",
+    "sessionId": "S1766255824388",
+    "boulderName": "Bluefin ",
+    "grade": "V5+",
+    "gradeSystem": "V",
+    "sendStatus": "Attempt",
+    "isProject": false,
+    "attempts": 6,
+    "performanceHighlight": false,
+    "notes": "A new V5+ set by Augie. A very hard, powerful, and high tension start on the shark fin with the next 3 moves being very hard. I was not able to do them. The second half of the climb was more doable but still hard. ",
+    "videos": "",
+    "timestamp": "2025-12-20T23:34:56.464Z"
   }
 ]
