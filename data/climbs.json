@@ -563,7 +563,7 @@
     "isProject": false,
     "attempts": 5,
     "performanceHighlight": false,
-    "notes": "A new board climb I havenât tried before. Easier opening moves followed by a difficult pinch to crimp sequence. Big move with a couple of beta options. ",
+    "notes": "A new board climb I havenÃ¢ÂÂt tried before. Easier opening moves followed by a difficult pinch to crimp sequence. Big move with a couple of beta options. ",
     "videos": "",
     "timestamp": "2025-12-23T18:14:29.571Z"
   },
@@ -580,5 +580,19 @@
     "notes": "Finally getting back on this climb. Made a good link from the middle to the top. And made an overlapping link from the start but fell at the high right hand move. Very good progress overall! ",
     "videos": "https://www.instagram.com/reel/DSm-9xPjrgbkuqSGyXOEfLrUfVJtCnbPJk7oKw0/?igsh=MTNwaTRvb2NvOWx0YQ==",
     "timestamp": "2025-12-23T18:16:17.236Z"
+  },
+  {
+    "climbId": "C1767734647859",
+    "sessionId": "S1767734539177",
+    "boulderName": "Sirens of Titan",
+    "grade": "B3",
+    "gradeSystem": "B",
+    "sendStatus": "Attempt",
+    "isProject": true,
+    "attempts": 5,
+    "performanceHighlight": false,
+    "notes": "More attempts this session but with limited sleep I struggled to make any sort of progress. Might need to rethink beta to ensure I get my right outside edge really engaged. ",
+    "videos": "",
+    "timestamp": "2026-01-06T21:24:07.859Z"
   }
 ]
