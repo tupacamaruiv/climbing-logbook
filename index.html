@@ -592,6 +592,18 @@
             }
         }
 
+        // Helper function to convert Uint8Array to base64 in chunks
+        // Avoids call stack overflow for large files
+        function uint8ArrayToBase64(bytes) {
+            let binary = '';
+            const chunkSize = 8192;
+            for (let i = 0; i < bytes.length; i += chunkSize) {
+                const chunk = bytes.subarray(i, i + chunkSize);
+                binary += String.fromCharCode.apply(null, chunk);
+            }
+            return btoa(binary);
+        }
+
         document.addEventListener('DOMContentLoaded', initializeApp);
 
         function initializeApp() {
@@ -904,7 +916,7 @@
                 
                 // Use TextEncoder for proper UTF-8 encoding before base64
                 const utf8Bytes = new TextEncoder().encode(jsonString);
-                const base64Content = btoa(String.fromCharCode(...utf8Bytes));
+                const base64Content = uint8ArrayToBase64(utf8Bytes);
 
                 const response = await fetch(`https://api.github.com/repos/${repo}/contents/data/${filename}`, {
                     method: 'PUT',
@@ -1250,8 +1262,8 @@
                 
                 // Use TextEncoder for proper UTF-8 encoding before base64
                 const utf8Bytes = new TextEncoder().encode(jsonString);
-                const base64Content = btoa(String.fromCharCode(...utf8Bytes));
-                
+                const base64Content = uint8ArrayToBase64(utf8Bytes);
+
                 const response = await fetch(`https://api.github.com/repos/${repo}/contents/data/${filename}`, {
                     method: 'PUT',
                     headers: {
