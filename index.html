@@ -929,7 +929,7 @@
                     body: JSON.stringify({
                         message: `Add ${filename.replace('.json', '')} entry`,
                         content: base64Content,
-                        sha: sha
+                        ...(sha && { sha })
                     })
                 });
 
@@ -1259,8 +1259,12 @@
                     headers: { 'Authorization': `token ${token}` }
                 });
 
+                if (!getResponse.ok) {
+                    showStatus('Error fetching file for update', 'error');
+                    return false;
+                }
                 const existingFile = await getResponse.json();
-                
+
                 // Convert to JSON string with proper encoding
                 const jsonString = JSON.stringify(data, null, 2);
                 
