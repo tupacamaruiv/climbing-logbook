@@ -623,5 +623,19 @@
     "videos": "",
     "timestamp": "2026-01-21T03:32:21.241Z",
     "lastUpdated": "2026-01-21T18:31:49.751Z"
+  },
+  {
+    "climbId": "C1769567346826",
+    "sessionId": "S1769567283693",
+    "boulderName": "Bear Hug",
+    "grade": "B2",
+    "gradeSystem": "B",
+    "sendStatus": "Attempt",
+    "isProject": true,
+    "attempts": 5,
+    "performanceHighlight": false,
+    "notes": "A new project at 35 degrees. Need to sort out the top moves! ",
+    "videos": "",
+    "timestamp": "2026-01-28T02:29:06.826Z"
   }
 ]
