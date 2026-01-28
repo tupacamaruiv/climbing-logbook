@@ -606,6 +606,13 @@
             return btoa(binary);
         }
 
+        // Helper function to properly decode base64 to UTF-8
+        // Fixes corruption caused by atob() not handling multi-byte UTF-8
+        function base64ToUtf8(base64) {
+            const bytes = Uint8Array.from(atob(base64), c => c.charCodeAt(0));
+            return new TextDecoder().decode(bytes);
+        }
+
         document.addEventListener('DOMContentLoaded', initializeApp);
 
         function initializeApp() {
@@ -728,7 +735,7 @@
 
                 if (response.ok) {
                     const data = await response.json();
-                    const sessions = JSON.parse(atob(data.content));
+                    const sessions = JSON.parse(base64ToUtf8(data.content));
                     availableSessions = sessions;
                     updateSessionDropdown(sessions);
                 }
@@ -765,9 +772,9 @@
 
                 if (response.ok) {
                     const data = await response.json();
-                    const climbs = JSON.parse(atob(data.content));
-                    
-                    const sortedClimbs = climbs.sort((a, b) => 
+                    const climbs = JSON.parse(base64ToUtf8(data.content));
+
+                    const sortedClimbs = climbs.sort((a, b) =>
                         new Date(b.timestamp) - new Date(a.timestamp)
                     );
                     
@@ -904,7 +911,7 @@
 
                     if (getResponse.ok) {
                         const existingFile = await getResponse.json();
-                        existingContent = JSON.parse(atob(existingFile.content));
+                        existingContent = JSON.parse(base64ToUtf8(existingFile.content));
                         sha = existingFile.sha;
                     }
                 } catch (error) {
@@ -967,8 +974,8 @@
 
                 if (response.ok) {
                     const data = await response.json();
-                    currentEditData = JSON.parse(atob(data.content));
-                    
+                    currentEditData = JSON.parse(base64ToUtf8(data.content));
+
                     const weekAgo = new Date(Date.now() - 7 * 24 * 60 * 60 * 1000);
                     const recentItems = currentEditData.filter(item => {
                         const itemDate = new Date(item.date || item.timestamp);
