@@ -638,5 +638,19 @@
     "videos": "https://www.instagram.com/reel/DUByIYWAeJRZsom6qFUy9K5hEMvBmaKYfMexJw0/?igsh=ZjhhM3RtNW9qY25p",
     "timestamp": "2026-01-28T02:29:06.826Z",
     "lastUpdated": "2026-01-28T02:30:02.992Z"
+  },
+  {
+    "climbId": "C1769975633725",
+    "sessionId": "S1769975568525",
+    "boulderName": "Jigglypuff",
+    "grade": "V6",
+    "gradeSystem": "V",
+    "sendStatus": "Attempt",
+    "isProject": false,
+    "attempts": 4,
+    "performanceHighlight": false,
+    "notes": "A new potential project set by Augie. Pink holds that move through globe/softball holds on the roof. ",
+    "videos": "",
+    "timestamp": "2026-02-01T19:53:53.725Z"
   }
 ]
