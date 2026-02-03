@@ -652,5 +652,19 @@
     "notes": "A new potential project set by Augie. Pink holds that move through globe/softball holds on the roof. ",
     "videos": "",
     "timestamp": "2026-02-01T19:53:53.725Z"
+  },
+  {
+    "climbId": "C1770139119709",
+    "sessionId": "S1770139069466",
+    "boulderName": "Bear Hug",
+    "grade": "B3",
+    "gradeSystem": "B",
+    "sendStatus": "Attempt",
+    "isProject": false,
+    "attempts": 5,
+    "performanceHighlight": false,
+    "notes": "Decent progress on the first move. Still need to work on the top section. ",
+    "videos": "",
+    "timestamp": "2026-02-03T17:18:39.709Z"
   }
 ]
