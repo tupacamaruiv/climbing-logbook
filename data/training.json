@@ -432,5 +432,14 @@
     "performanceHighlight": false,
     "notes": "100lb RDL with the power blocks. ",
     "timestamp": "2026-01-31T13:43:54.453Z"
+  },
+  {
+    "trainingId": "T1770203592972",
+    "date": "2026-02-04",
+    "exercise": "Bench Press",
+    "weight": 115,
+    "performanceHighlight": false,
+    "notes": "2nd and 3rd sets at 115.",
+    "timestamp": "2026-02-04T11:13:12.973Z"
   }
 ]
