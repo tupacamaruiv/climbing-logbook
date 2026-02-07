@@ -468,5 +468,14 @@
     "performanceHighlight": false,
     "notes": "Body weight + 20lbs at 5 reps ",
     "timestamp": "2026-02-04T11:46:35.584Z"
+  },
+  {
+    "trainingId": "T1770424032041",
+    "date": "2026-02-07",
+    "exercise": "20mm Lift",
+    "weight": 40,
+    "performanceHighlight": false,
+    "notes": "2 sets at 40",
+    "timestamp": "2026-02-07T00:27:12.042Z"
   }
 ]
