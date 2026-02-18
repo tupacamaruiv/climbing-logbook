@@ -560,5 +560,14 @@
     "performanceHighlight": false,
     "notes": "Owned all 3 sets of 5 reps at 45lbs. ",
     "timestamp": "2026-02-18T20:42:32.427Z"
+  },
+  {
+    "trainingId": "T1771447362569",
+    "date": "2026-02-18",
+    "exercise": "Bench Press",
+    "weight": 95,
+    "performanceHighlight": false,
+    "notes": "",
+    "timestamp": "2026-02-18T20:42:42.569Z"
   }
 ]
