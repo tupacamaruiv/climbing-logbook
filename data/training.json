@@ -623,5 +623,14 @@
     "performanceHighlight": false,
     "notes": "",
     "timestamp": "2026-02-26T11:29:42.013Z"
+  },
+  {
+    "trainingId": "T1772105403080",
+    "date": "2026-02-25",
+    "exercise": "Squat",
+    "weight": 65,
+    "performanceHighlight": false,
+    "notes": "First squats after knee injury",
+    "timestamp": "2026-02-26T11:30:03.080Z"
   }
 ]
