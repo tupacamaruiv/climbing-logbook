@@ -632,5 +632,14 @@
     "performanceHighlight": false,
     "notes": "First squats after knee injury",
     "timestamp": "2026-02-26T11:30:03.080Z"
+  },
+  {
+    "trainingId": "T1772105421454",
+    "date": "2026-02-25",
+    "exercise": "Pull Ups",
+    "weight": 30,
+    "performanceHighlight": true,
+    "notes": "3 sets of 4",
+    "timestamp": "2026-02-26T11:30:21.454Z"
   }
 ]
