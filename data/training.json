@@ -605,5 +605,14 @@
     "performanceHighlight": true,
     "notes": "3 sets of 5 reps and owned the weight. ",
     "timestamp": "2026-02-22T19:23:01.923Z"
+  },
+  {
+    "trainingId": "T1772105369168",
+    "date": "2026-02-25",
+    "exercise": "20mm Lift",
+    "weight": 50,
+    "performanceHighlight": true,
+    "notes": "50 for all 3 sets",
+    "timestamp": "2026-02-26T11:29:29.168Z"
   }
 ]
