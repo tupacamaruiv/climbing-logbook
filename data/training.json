@@ -614,5 +614,14 @@
     "performanceHighlight": true,
     "notes": "50 for all 3 sets",
     "timestamp": "2026-02-26T11:29:29.168Z"
+  },
+  {
+    "trainingId": "T1772105382013",
+    "date": "2026-02-25",
+    "exercise": "Bench Press",
+    "weight": 115,
+    "performanceHighlight": false,
+    "notes": "",
+    "timestamp": "2026-02-26T11:29:42.013Z"
   }
 ]
