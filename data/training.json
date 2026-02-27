@@ -641,5 +641,14 @@
     "performanceHighlight": true,
     "notes": "3 sets of 4",
     "timestamp": "2026-02-26T11:30:21.454Z"
+  },
+  {
+    "trainingId": "T1772229753428",
+    "date": "2026-02-27",
+    "exercise": "20mm Lift",
+    "weight": 45,
+    "performanceHighlight": false,
+    "notes": "45 after dropping down from 50 on the first set ",
+    "timestamp": "2026-02-27T22:02:33.428Z"
   }
 ]
