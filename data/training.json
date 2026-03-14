@@ -695,5 +695,14 @@
     "performanceHighlight": false,
     "notes": "",
     "timestamp": "2026-03-11T13:51:32.637Z"
+  },
+  {
+    "trainingId": "T1773493516714",
+    "date": "2026-03-13",
+    "exercise": "20mm Lift",
+    "weight": 52.5,
+    "performanceHighlight": false,
+    "notes": "Tried the fire set at 55 but had to drop it down. ",
+    "timestamp": "2026-03-14T13:05:16.714Z"
   }
 ]
