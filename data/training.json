@@ -731,5 +731,14 @@
     "performanceHighlight": false,
     "notes": "Good lifts ",
     "timestamp": "2026-03-25T10:23:33.037Z"
+  },
+  {
+    "trainingId": "T1774435688926",
+    "date": "2026-03-25",
+    "exercise": "Deadlift",
+    "weight": 205,
+    "performanceHighlight": false,
+    "notes": "",
+    "timestamp": "2026-03-25T10:48:08.926Z"
   }
 ]
