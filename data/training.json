@@ -767,5 +767,14 @@
     "performanceHighlight": false,
     "notes": "",
     "timestamp": "2026-04-01T11:02:29.566Z"
+  },
+  {
+    "trainingId": "T1775041370441",
+    "date": "2026-04-01",
+    "exercise": "Squat",
+    "weight": 50,
+    "performanceHighlight": false,
+    "notes": "Split squat starting at 30. ",
+    "timestamp": "2026-04-01T11:02:50.441Z"
   }
 ]
