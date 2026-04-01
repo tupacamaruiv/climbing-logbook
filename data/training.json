@@ -758,5 +758,14 @@
     "performanceHighlight": true,
     "notes": "3 sets owned 5 reps ",
     "timestamp": "2026-03-25T12:10:35.161Z"
+  },
+  {
+    "trainingId": "T1775041349565",
+    "date": "2026-04-01",
+    "exercise": "Deadlift",
+    "weight": 205,
+    "performanceHighlight": false,
+    "notes": "",
+    "timestamp": "2026-04-01T11:02:29.566Z"
   }
 ]
