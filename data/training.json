@@ -776,5 +776,14 @@
     "performanceHighlight": false,
     "notes": "Split squat starting at 30. ",
     "timestamp": "2026-04-01T11:02:50.441Z"
+  },
+  {
+    "trainingId": "T1775066770593",
+    "date": "2026-04-01",
+    "exercise": "Pull Ups",
+    "weight": 20,
+    "performanceHighlight": false,
+    "notes": "5 reps at 20 need to bump up to 25",
+    "timestamp": "2026-04-01T18:06:10.593Z"
   }
 ]
