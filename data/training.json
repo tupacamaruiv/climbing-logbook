@@ -884,5 +884,14 @@
     "performanceHighlight": false,
     "notes": "Mostly owned 3 sets at 5 reps. Maybe try 30lbs for 3 reps next session. ",
     "timestamp": "2026-04-15T10:55:03.511Z"
+  },
+  {
+    "trainingId": "T1776250531483",
+    "date": "2026-04-15",
+    "exercise": "Sled Push/Pull",
+    "weight": 135,
+    "performanceHighlight": false,
+    "notes": "3 plates. Let’s make this the default. ",
+    "timestamp": "2026-04-15T10:55:31.483Z"
   }
 ]
