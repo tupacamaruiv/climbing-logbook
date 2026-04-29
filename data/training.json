@@ -992,5 +992,14 @@
     "performanceHighlight": false,
     "notes": "3x6",
     "timestamp": "2026-04-29T10:57:53.978Z"
+  },
+  {
+    "trainingId": "T1777460286403",
+    "date": "2026-04-29",
+    "exercise": "20mm Lift",
+    "weight": 55,
+    "performanceHighlight": false,
+    "notes": "3x5",
+    "timestamp": "2026-04-29T10:58:06.403Z"
   }
 ]
