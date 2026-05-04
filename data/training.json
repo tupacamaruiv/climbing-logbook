@@ -1010,5 +1010,14 @@
     "performanceHighlight": false,
     "notes": "3x5 seconds BW (160) hang although wasn’t fully owning the last set. Think I didn’t give my self enough rest after the 2nd set. ",
     "timestamp": "2026-05-01T12:49:17.274Z"
+  },
+  {
+    "trainingId": "T1777922347896",
+    "date": "2026-05-04",
+    "exercise": "Leg Extension",
+    "weight": 90,
+    "performanceHighlight": false,
+    "notes": "2x90. Felt good. ",
+    "timestamp": "2026-05-04T19:19:07.896Z"
   }
 ]
