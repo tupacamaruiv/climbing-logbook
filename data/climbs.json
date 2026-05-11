@@ -744,11 +744,12 @@
     "grade": "V5",
     "gradeSystem": "V",
     "sendStatus": "Attempt",
-    "isProject": false,
+    "isProject": true,
     "attempts": 5,
     "performanceHighlight": false,
     "notes": "A good full link from the start with some small heel hook beta break through in the crux. I still have not stuck the crux though. Both the full link and the crux need to be a priority. ",
     "videos": "",
-    "timestamp": "2026-05-10T23:08:14.389Z"
+    "timestamp": "2026-05-10T23:08:14.389Z",
+    "lastUpdated": "2026-05-11T00:24:40.494Z"
   }
 ]
