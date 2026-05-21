@@ -1154,5 +1154,14 @@
     "performanceHighlight": false,
     "notes": "3x3 lifts. A bit janky at home set up and lifts.",
     "timestamp": "2026-05-20T10:06:45.782Z"
+  },
+  {
+    "trainingId": "T1779390961979",
+    "date": "2026-05-21",
+    "exercise": "Leg Extension",
+    "weight": 90,
+    "performanceHighlight": false,
+    "notes": "3x6",
+    "timestamp": "2026-05-21T19:16:01.979Z"
   }
 ]
