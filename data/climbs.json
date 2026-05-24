@@ -780,5 +780,19 @@
     "videos": "https://www.instagram.com/reel/DYppgcWSBZ_yvVJNlTvPy2Zo4ZBdd_roUdyY000/?igsh=MXZ1eTYwdzE1aXNvcA==",
     "timestamp": "2026-05-23T11:36:19.109Z",
     "lastUpdated": "2026-05-24T15:53:41.482Z"
+  },
+  {
+    "climbId": "C1779638145759",
+    "sessionId": "S1779638049546",
+    "boulderName": "Sawmill",
+    "grade": "V5",
+    "gradeSystem": "V",
+    "sendStatus": "Send",
+    "isProject": true,
+    "attempts": 3,
+    "performanceHighlight": true,
+    "notes": "Project COMPLETE. Finalized beta on the crux moves, rehearsed the crux once, then SENT IT. Huge. ",
+    "videos": "",
+    "timestamp": "2026-05-24T15:55:45.759Z"
   }
 ]
