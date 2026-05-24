@@ -773,11 +773,12 @@
     "grade": "V5",
     "gradeSystem": "V",
     "sendStatus": "Attempt",
-    "isProject": false,
+    "isProject": true,
     "attempts": 8,
     "performanceHighlight": false,
     "notes": "Solid effort. Need to link the final crux section to the top, for the next session. Then I can go back to making send attempts. Great progress overall on the crux and also making the other moves more efficient. ",
     "videos": "https://www.instagram.com/reel/DYppgcWSBZ_yvVJNlTvPy2Zo4ZBdd_roUdyY000/?igsh=MXZ1eTYwdzE1aXNvcA==",
-    "timestamp": "2026-05-23T11:36:19.109Z"
+    "timestamp": "2026-05-23T11:36:19.109Z",
+    "lastUpdated": "2026-05-24T15:53:41.482Z"
   }
 ]
