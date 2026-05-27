@@ -1190,5 +1190,14 @@
     "performanceHighlight": false,
     "notes": "3x3",
     "timestamp": "2026-05-27T10:12:40.417Z"
+  },
+  {
+    "trainingId": "T1779877993140",
+    "date": "2026-05-27",
+    "exercise": "Deadlift",
+    "weight": 225,
+    "performanceHighlight": false,
+    "notes": "3x3",
+    "timestamp": "2026-05-27T10:33:13.140Z"
   }
 ]
