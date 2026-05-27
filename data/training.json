@@ -1181,5 +1181,14 @@
     "performanceHighlight": false,
     "notes": "3x5-6",
     "timestamp": "2026-05-27T10:12:12.851Z"
+  },
+  {
+    "trainingId": "T1779876760417",
+    "date": "2026-05-27",
+    "exercise": "Bench Press",
+    "weight": 135,
+    "performanceHighlight": false,
+    "notes": "3x3",
+    "timestamp": "2026-05-27T10:12:40.417Z"
   }
 ]
