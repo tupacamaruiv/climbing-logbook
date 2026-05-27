@@ -1172,5 +1172,14 @@
     "performanceHighlight": false,
     "notes": "3x6",
     "timestamp": "2026-05-21T19:16:18.593Z"
+  },
+  {
+    "trainingId": "T1779876732851",
+    "date": "2026-05-27",
+    "exercise": "Squat",
+    "weight": 135,
+    "performanceHighlight": false,
+    "notes": "3x5-6",
+    "timestamp": "2026-05-27T10:12:12.851Z"
   }
 ]
