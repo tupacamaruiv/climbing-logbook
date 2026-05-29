@@ -1217,5 +1217,14 @@
     "performanceHighlight": false,
     "notes": "3 rounds",
     "timestamp": "2026-05-27T10:48:18.126Z"
+  },
+  {
+    "trainingId": "T1780048234460",
+    "date": "2026-05-27",
+    "exercise": "20mm Lift",
+    "weight": 57.5,
+    "performanceHighlight": false,
+    "notes": "Owned 3x5",
+    "timestamp": "2026-05-29T09:50:34.460Z"
   }
 ]
