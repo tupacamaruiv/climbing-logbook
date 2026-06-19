@@ -405,10 +405,6 @@
                         <label>Location</label>
                         <select id="sessionLocation" required>
                             <option value="">Choose location...</option>
-                            <option value="Peak Boulders">Peak Boulders</option>
-                            <option value="Peak Midlo Board">Peak Midlo Board</option>
-                            <option value="Triangle Boulders">Triangle Boulders</option>
-                            <option value="Triangle Board">Triangle Board</option>
                         </select>
                     </div>
                     <div class="form-group">
@@ -564,6 +560,8 @@
     </div>
 
     <script>
+        const LOCATIONS = ['Peak Boulders', 'Peak Midlo Board', 'Triangle Boulders', 'Triangle Board'];
+
         let currentRating = 5;
         let editRating = 5;
         let existingBoulderNames = [];
@@ -614,6 +612,15 @@
             const today = new Date().toISOString().split('T')[0];
             document.getElementById('sessionDate').value = today;
             document.getElementById('trainingDate').value = today;
+
+            // Populate session location select from LOCATIONS constant
+            const locationSelect = document.getElementById('sessionLocation');
+            LOCATIONS.forEach(loc => {
+                const option = document.createElement('option');
+                option.value = loc;
+                option.textContent = loc;
+                locationSelect.appendChild(option);
+            });
 
             const savedRepo = localStorage.getItem('githubRepo');
             const savedToken = localStorage.getItem('githubToken');
@@ -983,6 +990,39 @@
                 if (response.ok) {
                     showStatus('Successfully saved to GitHub! 🎉', 'success');
                     return true;
+                } else if (response.status === 409) {
+                    // Conflict: SHA is stale — re-fetch and retry once
+                    const retryGet = await fetch(`https://api.github.com/repos/${repo}/contents/data/${filename}`, {
+                        headers: { 'Authorization': `token ${token}` }
+                    });
+                    if (!retryGet.ok) {
+                        showStatus('GitHub conflict error: could not re-fetch file', 'error');
+                        return false;
+                    }
+                    const retryFile = await retryGet.json();
+                    const retryBase64 = uint8ArrayToBase64(new TextEncoder().encode(
+                        JSON.stringify(JSON.parse(base64ToUtf8(retryFile.content)).concat([data]), null, 2)
+                    ));
+                    const retryResponse = await fetch(`https://api.github.com/repos/${repo}/contents/data/${filename}`, {
+                        method: 'PUT',
+                        headers: {
+                            'Authorization': `token ${token}`,
+                            'Content-Type': 'application/json',
+                        },
+                        body: JSON.stringify({
+                            message: `Add ${filename.replace('.json', '')} entry`,
+                            content: retryBase64,
+                            sha: retryFile.sha
+                        })
+                    });
+                    if (retryResponse.ok) {
+                        showStatus('Successfully saved to GitHub! 🎉', 'success');
+                        return true;
+                    } else {
+                        const retryError = await retryResponse.json();
+                        showStatus(`GitHub error: ${retryError.message}`, 'error');
+                        return false;
+                    }
                 } else {
                     const errorData = await response.json();
                     showStatus(`GitHub error: ${errorData.message}`, 'error');
@@ -1045,7 +1085,7 @@
 
                     if (type === 'sessions') {
                         title = `${item.date} - ${item.location}`;
-                        subtitle = `RPE: ${item.rpe || 'Not set'} • Rating: ${item.rating || item.stars || 'Not set'}/10`;
+                        subtitle = `RPE: ${item.rpe || 'Not set'} • Rating: ${item.rating || 'Not set'}/10`;
                         itemId = item.sessionId;
                     } else if (type === 'climbs') {
                         title = `${escapeHtml(item.boulderName)} (${item.grade})`;
@@ -1099,10 +1139,7 @@
                         <label>Location</label>
                         <select id="editSessionLocation">
                             <option value="">Choose location...</option>
-                            <option value="Peak Boulders" ${item.location === 'Peak Boulders' ? 'selected' : ''}>Peak Boulders</option>
-                            <option value="Peak Midlo Board" ${item.location === 'Peak Midlo Board' ? 'selected' : ''}>Peak Midlo Board</option>
-                            <option value="Triangle Boulders" ${item.location === 'Triangle Boulders' ? 'selected' : ''}>Triangle Boulders</option>
-                            <option value="Triangle Board" ${item.location === 'Triangle Board' ? 'selected' : ''}>Triangle Board</option>
+                            ${LOCATIONS.map(loc => `<option value="${loc}" ${item.location === loc ? 'selected' : ''}>${loc}</option>`).join('\n                            ')}
                         </select>
                     </div>
                     <div class="form-group">
@@ -1112,8 +1149,8 @@
                     </div>
                     <div class="form-group">
                         <label>Session Rating (1-10)</label>
-                        <input type="range" id="editSessionRating" min="1" max="10" value="${item.rating || item.stars || 5}" />
-                        <div class="range-value"><span id="editRatingValue">${item.rating || item.stars || 5}</span>/10</div>
+                        <input type="range" id="editSessionRating" min="1" max="10" value="${item.rating || 5}" />
+                        <div class="range-value"><span id="editRatingValue">${item.rating || 5}</span>/10</div>
                     </div>
                     <div class="form-group">
                         <label>Notes</label>
@@ -1124,7 +1161,7 @@
                         <input type="url" id="editSessionVideos" value="${item.videos || ''}" />
                     </div>
                 `;
-                editRating = item.rating || item.stars || 5;
+                editRating = item.rating || 5;
             } else if (type === 'climbs') {
                 const session = availableSessions.find(s => s.sessionId === item.sessionId);
                 const sessionDisplay = session ? `${session.date} - ${session.location}` : item.sessionId;
@@ -1256,7 +1293,6 @@
                 selectedEditItem.location = document.getElementById('editSessionLocation').value;
                 selectedEditItem.rpe = parseInt(document.getElementById('editSessionRPE').value);
                 selectedEditItem.rating = editRating;
-                selectedEditItem.stars = editRating;
                 selectedEditItem.notes = document.getElementById('editSessionNotes').value;
                 selectedEditItem.videos = document.getElementById('editSessionVideos').value;
             } else if (type === 'climbs') {
