@@ -137,6 +137,7 @@
         
         input, select, textarea {
             width: 100%;
+            min-width: 0;
             padding: 12px;
             border: 1px solid #d1d5db;
             border-radius: 8px;
@@ -145,6 +146,10 @@
             font-family: inherit;
             font-size: 0.875rem;
             transition: border-color 0.2s, box-shadow 0.2s;
+        }
+
+        input[type="date"] {
+            padding-right: 8px;
         }
         
         input:focus, select:focus, textarea:focus {
@@ -394,6 +399,10 @@
                 <!-- Session Form -->
                 <div class="form-section active" id="session-form">
                     <div class="form-group">
+                        <label>Date</label>
+                        <input type="date" id="sessionDate" required />
+                    </div>
+                    <div class="form-group">
                         <label>Location</label>
                         <select id="sessionLocation" required>
                             <option value="">Choose location...</option>
@@ -436,13 +445,6 @@
                         <input type="text" id="climbGrade" placeholder="e.g., V4, B3" required />
                     </div>
                     <div class="form-group">
-                        <label>Grade System</label>
-                        <select id="gradeSystem">
-                            <option value="V">V-Scale</option>
-                            <option value="B">B-Scale</option>
-                        </select>
-                    </div>
-                    <div class="form-group">
                         <label>Send Status</label>
                         <select id="sendStatus" required>
                             <option value="">Choose status...</option>
@@ -455,7 +457,7 @@
                     <div class="form-group">
                         <div class="checkbox-group">
                             <input type="checkbox" id="isProject" class="checkbox" />
-                            <label for="isProject" class="checkbox-label">This is a project</label>
+                            <label for="isProject" class="checkbox-label">Project</label>
                         </div>
                     </div>
                     <div class="form-group">
@@ -605,6 +607,7 @@
 
         function initializeApp() {
             const today = new Date().toISOString().split('T')[0];
+            document.getElementById('sessionDate').value = today;
             document.getElementById('trainingDate').value = today;
 
             // Populate session location select from LOCATIONS constant
@@ -694,6 +697,12 @@
             loadSessions();
             loadBoulderNames();
             loadExercises();
+        }
+
+        function showGitHubSetup(message) {
+            document.getElementById('mainApp').style.display = 'none';
+            document.getElementById('githubSetup').style.display = 'block';
+            showStatus(message || 'GitHub token expired or invalid. Please update your token.', 'error');
         }
 
         function switchTab(tab, event) {
@@ -853,7 +862,7 @@
             const now = new Date();
             const sessionData = {
                 sessionId: 'S' + Date.now(),
-                date: now.toISOString().split('T')[0],
+                date: document.getElementById('sessionDate').value || now.toISOString().split('T')[0],
                 location: document.getElementById('sessionLocation').value,
                 rating: currentRating,
                 notes: document.getElementById('sessionNotes').value,
@@ -886,7 +895,7 @@
                 sessionId: sessionId,
                 boulderName: document.getElementById('boulderName').value,
                 grade: document.getElementById('climbGrade').value,
-                gradeSystem: document.getElementById('gradeSystem').value,
+                gradeSystem: document.getElementById('climbGrade').value.trim().toUpperCase().startsWith('B') ? 'B' : 'V',
                 sendStatus: document.getElementById('sendStatus').value,
                 isProject: document.getElementById('isProject').checked,
                 attempts: parseInt(document.getElementById('attempts').value),
@@ -1017,6 +1026,9 @@
                         showStatus(`GitHub error: ${retryError.message}`, 'error');
                         return false;
                     }
+                } else if (response.status === 401) {
+                    showGitHubSetup('GitHub token expired or invalid. Please update your token.');
+                    return false;
                 } else {
                     const errorData = await response.json();
                     showStatus(`GitHub error: ${errorData.message}`, 'error');
@@ -1360,7 +1372,11 @@
                 });
 
                 if (!getResponse.ok) {
-                    showStatus('Error fetching file for update', 'error');
+                    if (getResponse.status === 401) {
+                        showGitHubSetup('GitHub token expired or invalid. Please update your token.');
+                    } else {
+                        showStatus('Error fetching file for update', 'error');
+                    }
                     return false;
                 }
                 const existingFile = await getResponse.json();
@@ -1385,6 +1401,10 @@
                     })
                 });
 
+                if (response.status === 401) {
+                    showGitHubSetup('GitHub token expired or invalid. Please update your token.');
+                    return false;
+                }
                 return response.ok;
             } catch (error) {
                 showStatus('Error updating entry', 'error');
@@ -1441,6 +1461,8 @@
         }
 
         function clearSessionForm() {
+            const today = new Date().toISOString().split('T')[0];
+            document.getElementById('sessionDate').value = today;
             document.getElementById('sessionNotes').value = '';
             document.getElementById('sessionVideos').value = '';
             document.getElementById('sessionRating').value = 5;
