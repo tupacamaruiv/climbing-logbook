@@ -406,13 +406,13 @@
                     </div>
                     <div class="form-group">
                         <label>Notes</label>
-                        <textarea id="sessionNotes" rows="6" placeholder="How did the session go?"></textarea>
+                        <textarea id="sessionNotes" rows="8" placeholder="How did the session go?"></textarea>
                     </div>
                     <div class="form-group">
-                        <label>Videos</label>
+                        <label>Media</label>
                         <input type="url" id="sessionVideos" placeholder="Paste video links here" />
                     </div>
-                    <button class="button" onclick="submitSession()">Log Session to GitHub</button>
+                    <button class="button" onclick="submitSession()">Log Session</button>
                 </div>
 
                 <!-- Climb Form -->
@@ -470,13 +470,13 @@
                     </div>
                     <div class="form-group">
                         <label>Climb Notes</label>
-                        <textarea id="climbNotes" rows="6" placeholder="Beta, technique, thoughts..."></textarea>
+                        <textarea id="climbNotes" rows="8" placeholder="Beta, technique, thoughts..."></textarea>
                     </div>
                     <div class="form-group">
-                        <label>Videos</label>
+                        <label>Media</label>
                         <input type="url" id="climbVideos" placeholder="Paste video links here" />
                     </div>
-                    <button class="button" onclick="submitClimb()">Log Climb to GitHub</button>
+                    <button class="button" onclick="submitClimb()">Log Climb</button>
                 </div>
 
                 <!-- Training Form -->
@@ -511,9 +511,9 @@
                     </div>
                     <div class="form-group">
                         <label>Notes</label>
-                        <textarea id="trainingNotes" rows="2" placeholder="Form notes, how it felt..."></textarea>
+                        <textarea id="trainingNotes" rows="8" placeholder="Form notes, how it felt..."></textarea>
                     </div>
-                    <button class="button" onclick="submitTraining()">Log Training to GitHub</button>
+                    <button class="button" onclick="submitTraining()">Log Training</button>
                 </div>
 
                 <!-- Edit Form -->
@@ -823,12 +823,25 @@
                 availableExercises = [];
             }
 
+            // Sort exercises alphabetically (case-insensitive)
+            availableExercises.sort((a, b) => a.toLowerCase().localeCompare(b.toLowerCase()));
+
             // Populate training select
             const exerciseSelect = document.getElementById('exercise');
             if (exerciseSelect) {
                 // preserve placeholder
                 const placeholder = '<option value="">Choose exercise...</option>';
                 exerciseSelect.innerHTML = placeholder + (availableExercises.map(e => `\n                    <option value="${e}">${escapeHtml(e)}</option>`).join(''));
+            }
+        }
+
+        // Helper function to insert exercise in alphabetical order
+        function insertExerciseAlphabetically(newExercise) {
+            const index = availableExercises.findIndex(e => e.toLowerCase() > newExercise.toLowerCase());
+            if (index === -1) {
+                availableExercises.push(newExercise);
+            } else {
+                availableExercises.splice(index, 0, newExercise);
             }
         }
 
@@ -1139,10 +1152,10 @@
                     </div>
                     <div class="form-group">
                         <label>Notes</label>
-                        <textarea id="editSessionNotes" rows="6"></textarea>
+                        <textarea id="editSessionNotes" rows="8"></textarea>
                     </div>
                     <div class="form-group">
-                        <label>Videos</label>
+                        <label>Media</label>
                         <input type="url" id="editSessionVideos" value="${item.videos || ''}" />
                     </div>
                 `;
@@ -1204,10 +1217,10 @@
                     </div>
                     <div class="form-group">
                         <label>Climb Notes</label>
-                        <textarea id="editClimbNotes" rows="6"></textarea>
+                        <textarea id="editClimbNotes" rows="8"></textarea>
                     </div>
                     <div class="form-group">
-                        <label>Videos</label>
+                        <label>Media</label>
                         <input type="url" id="editClimbVideos" value="${item.videos || ''}" />
                     </div>
                 `;
@@ -1245,7 +1258,7 @@
                     </div>
                     <div class="form-group">
                         <label>Notes</label>
-                        <textarea id="editTrainingNotes" rows="2"></textarea>
+                        <textarea id="editTrainingNotes" rows="8"></textarea>
                     </div>
                 `;
             }
