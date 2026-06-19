@@ -457,18 +457,14 @@
                         </select>
                     </div>
                     <div class="form-group">
-                        <div class="checkbox-group">
-                            <input type="checkbox" id="isProject" class="checkbox" />
-                            <label for="isProject" class="checkbox-label">Project</label>
-                        </div>
-                    </div>
-                    <div class="form-group">
                         <label>Attempts This Session</label>
                         <input type="number" id="attempts" min="1" value="1" />
                     </div>
                     <div class="form-group">
                         <div class="checkbox-group">
-                            <input type="checkbox" id="climbHighlight" class="checkbox" />
+                            <input type="checkbox" id="isProject" class="checkbox" />
+                            <label for="isProject" class="checkbox-label">Project</label>
+                            <input type="checkbox" id="climbHighlight" class="checkbox" style="margin-left: 1.5rem;" />
                             <label for="climbHighlight" class="checkbox-label">Performance Highlight</label>
                         </div>
                     </div>
@@ -946,6 +942,8 @@
         async function submitToGitHub(filename, data) {
             const repo = localStorage.getItem('githubRepo');
             const token = localStorage.getItem('githubToken');
+            const typeLabels = { 'sessions.json': 'Session', 'climbs.json': 'Climb', 'training.json': 'Training' };
+            const entryLabel = typeLabels[filename] || 'Entry';
 
             if (!repo || !token) {
                 showStatus('Setup not complete', 'error');
@@ -993,7 +991,7 @@
                 });
 
                 if (response.ok) {
-                    showStatus('Successfully saved to GitHub! 🎉', 'success');
+                    showStatus(`${entryLabel} Logged! 🎉`, 'success');
                     return true;
                 } else if (response.status === 409) {
                     // Conflict: SHA is stale — re-fetch and retry once
@@ -1021,7 +1019,7 @@
                         })
                     });
                     if (retryResponse.ok) {
-                        showStatus('Successfully saved to GitHub! 🎉', 'success');
+                        showStatus(`${entryLabel} Logged! 🎉`, 'success');
                         return true;
                     } else {
                         const retryError = await retryResponse.json();
