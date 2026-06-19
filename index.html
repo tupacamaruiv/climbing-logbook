@@ -1026,8 +1026,8 @@
                         showStatus(`GitHub error: ${retryError.message}`, 'error');
                         return false;
                     }
-                } else if (response.status === 401) {
-                    showGitHubSetup('GitHub token expired or invalid. Please update your token.');
+                } else if (response.status === 401 || response.status === 404) {
+                    showGitHubSetup('GitHub token invalid or missing write access. Please update your token.');
                     return false;
                 } else {
                     const errorData = await response.json();
@@ -1401,8 +1401,8 @@
                     })
                 });
 
-                if (response.status === 401) {
-                    showGitHubSetup('GitHub token expired or invalid. Please update your token.');
+                if (response.status === 401 || response.status === 404) {
+                    showGitHubSetup('GitHub token invalid or missing write access. Please update your token.');
                     return false;
                 }
                 return response.ok;
