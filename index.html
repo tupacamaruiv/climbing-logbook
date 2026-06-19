@@ -393,24 +393,11 @@
 
                 <!-- Session Form -->
                 <div class="form-section active" id="session-form">
-                    <div class="quick-buttons">
-                        <button class="quick-button" onclick="fillToday()">Today's Date</button>
-                        <button class="quick-button" onclick="fillLastLocation()">Last Location</button>
-                    </div>
-                    <div class="form-group">
-                        <label>Date</label>
-                        <input type="date" id="sessionDate" required />
-                    </div>
                     <div class="form-group">
                         <label>Location</label>
                         <select id="sessionLocation" required>
                             <option value="">Choose location...</option>
                         </select>
-                    </div>
-                    <div class="form-group">
-                        <label>Session RPE (1-10)</label>
-                        <input type="range" id="sessionRPE" min="1" max="10" value="5" />
-                        <div class="range-value"><span id="rpeValue">5</span>/10</div>
                     </div>
                     <div class="form-group">
                         <label>Session Rating (1-10)</label>
@@ -503,6 +490,14 @@
                         <select id="exercise" required>
                             <option value="">Choose exercise...</option>
                         </select>
+                    </div>
+                    <div class="form-group">
+                        <label>Sets <span style="font-weight:400;color:#6b7280;">(optional)</span></label>
+                        <input type="number" id="trainingSets" min="1" placeholder="e.g. 3" />
+                    </div>
+                    <div class="form-group">
+                        <label>Reps <span style="font-weight:400;color:#6b7280;">(optional)</span></label>
+                        <input type="number" id="trainingReps" min="1" placeholder="e.g. 8" />
                     </div>
                     <div class="form-group">
                         <label>Working Weight (lbs)</label>
@@ -610,7 +605,6 @@
 
         function initializeApp() {
             const today = new Date().toISOString().split('T')[0];
-            document.getElementById('sessionDate').value = today;
             document.getElementById('trainingDate').value = today;
 
             // Populate session location select from LOCATIONS constant
@@ -630,10 +624,6 @@
                 document.getElementById('githubToken').value = savedToken;
                 showMainApp();
             }
-
-            document.getElementById('sessionRPE').addEventListener('input', function() {
-                document.getElementById('rpeValue').textContent = this.value;
-            });
 
             document.getElementById('sessionRating').addEventListener('input', function() {
                 document.getElementById('ratingValue').textContent = this.value;
@@ -719,19 +709,6 @@
                 document.getElementById('recentItems').style.display = 'none';
                 document.getElementById('editFormContainer').style.display = 'none';
                 document.getElementById('deleteButton').style.display = 'none';
-            }
-        }
-
-        function fillToday() {
-            document.getElementById('sessionDate').value = new Date().toISOString().split('T')[0];
-        }
-
-        function fillLastLocation() {
-            const lastLocation = localStorage.getItem('lastLocation');
-            if (lastLocation) {
-                document.getElementById('sessionLocation').value = lastLocation;
-            } else {
-                showStatus('No previous location saved', 'error');
             }
         }
 
@@ -860,19 +837,19 @@
         }
 
         async function submitSession() {
+            const now = new Date();
             const sessionData = {
                 sessionId: 'S' + Date.now(),
-                date: document.getElementById('sessionDate').value,
+                date: now.toISOString().split('T')[0],
                 location: document.getElementById('sessionLocation').value,
-                rpe: parseInt(document.getElementById('sessionRPE').value),
                 rating: currentRating,
                 notes: document.getElementById('sessionNotes').value,
                 videos: document.getElementById('sessionVideos').value,
-                timestamp: new Date().toISOString()
+                timestamp: now.toISOString()
             };
 
-            if (!sessionData.date || !sessionData.location) {
-                showStatus('Please fill in date and location', 'error');
+            if (!sessionData.location) {
+                showStatus('Please fill in location', 'error');
                 return;
             }
 
@@ -918,10 +895,14 @@
         }
 
         async function submitTraining() {
+            const setsVal = document.getElementById('trainingSets').value.trim();
+            const repsVal = document.getElementById('trainingReps').value.trim();
             const trainingData = {
                 trainingId: 'T' + Date.now(),
                 date: document.getElementById('trainingDate').value,
                 exercise: document.getElementById('exercise').value,
+                ...(setsVal !== '' && { sets: parseInt(setsVal) }),
+                ...(repsVal !== '' && { reps: parseInt(repsVal) }),
                 weight: parseFloat(document.getElementById('weight').value),
                 performanceHighlight: document.getElementById('trainingHighlight').checked,
                 notes: document.getElementById('trainingNotes').value,
@@ -1056,11 +1037,16 @@
                     const data = await response.json();
                     currentEditData = JSON.parse(base64ToUtf8(data.content));
 
-                    const weekAgo = new Date(Date.now() - 7 * 24 * 60 * 60 * 1000);
-                    const recentItems = currentEditData.filter(item => {
-                        const itemDate = new Date(item.date || item.timestamp);
-                        return itemDate >= weekAgo;
-                    }).slice(-10).reverse();
+                    // Sort by ID descending (IDs are timestamp-based: S/C/T + epoch ms)
+                    const idField = type === 'sessions' ? 'sessionId' : type === 'climbs' ? 'climbId' : 'trainingId';
+                    const recentItems = currentEditData
+                        .slice()
+                        .sort((a, b) => {
+                            const aId = (a[idField] || '').slice(1);
+                            const bId = (b[idField] || '').slice(1);
+                            return bId.localeCompare(aId, undefined, { numeric: true });
+                        })
+                        .slice(0, 10);
 
                     displayEditItems(type, recentItems);
                 } else {
@@ -1074,6 +1060,7 @@
         function displayEditItems(type, items) {
             const container = document.getElementById('itemsList');
             const recentItems = document.getElementById('recentItems');
+            const idField = type === 'sessions' ? 'sessionId' : type === 'climbs' ? 'climbId' : 'trainingId';
 
             if (items.length === 0) {
                 container.innerHTML = '<p style="color: #6b7280;">No recent entries found</p>';
@@ -1085,14 +1072,17 @@
 
                     if (type === 'sessions') {
                         title = `${item.date} - ${item.location}`;
-                        subtitle = `RPE: ${item.rpe || 'Not set'} • Rating: ${item.rating || 'Not set'}/10`;
+                        subtitle = `Rating: ${item.rating || 'Not set'}/10`;
                         itemId = item.sessionId;
                     } else if (type === 'climbs') {
                         title = `${escapeHtml(item.boulderName)} (${item.grade})`;
                         subtitle = `${item.sendStatus} • ${item.isProject ? 'Project' : 'Regular'}`;
                         itemId = item.climbId;
                     } else if (type === 'training') {
-                        title = `${item.exercise} - ${item.weight}lbs`;
+                        const setsReps = (item.sets != null || item.reps != null)
+                            ? ` • ${item.sets != null ? item.sets + ' sets' : ''}${item.sets != null && item.reps != null ? ' x ' : ''}${item.reps != null ? item.reps + ' reps' : ''}`
+                            : '';
+                        title = `${escapeHtml(item.exercise)} - ${item.weight}lbs${setsReps}`;
                         subtitle = `${item.date}`;
                         itemId = item.trainingId;
                     }
@@ -1141,11 +1131,6 @@
                             <option value="">Choose location...</option>
                             ${LOCATIONS.map(loc => `<option value="${loc}" ${item.location === loc ? 'selected' : ''}>${loc}</option>`).join('\n                            ')}
                         </select>
-                    </div>
-                    <div class="form-group">
-                        <label>Session RPE (1-10)</label>
-                        <input type="range" id="editSessionRPE" min="1" max="10" value="${item.rpe || 5}" />
-                        <div class="range-value"><span id="editRPEValue">${item.rpe || 5}</span>/10</div>
                     </div>
                     <div class="form-group">
                         <label>Session Rating (1-10)</label>
@@ -1241,6 +1226,14 @@
                             </select>
                         </div>
                     <div class="form-group">
+                        <label>Sets <span style="font-weight:400;color:#6b7280;">(optional)</span></label>
+                        <input type="number" id="editTrainingSets" min="1" placeholder="e.g. 3" value="${item.sets != null ? item.sets : ''}" />
+                    </div>
+                    <div class="form-group">
+                        <label>Reps <span style="font-weight:400;color:#6b7280;">(optional)</span></label>
+                        <input type="number" id="editTrainingReps" min="1" placeholder="e.g. 8" value="${item.reps != null ? item.reps : ''}" />
+                    </div>
+                    <div class="form-group">
                         <label>Working Weight (lbs)</label>
                         <input type="number" id="editWeight" min="0" step="0.5" value="${item.weight || ''}" />
                     </div>
@@ -1262,9 +1255,6 @@
             // Set textarea values after DOM is created (to properly handle special characters)
             if (type === 'sessions') {
                 safeSetValue('editSessionNotes', item.notes);
-                document.getElementById('editSessionRPE').addEventListener('input', function() {
-                    document.getElementById('editRPEValue').textContent = this.value;
-                });
                 document.getElementById('editSessionRating').addEventListener('input', function() {
                     document.getElementById('editRatingValue').textContent = this.value;
                     editRating = parseInt(this.value);
@@ -1291,7 +1281,6 @@
             if (type === 'sessions') {
                 selectedEditItem.date = document.getElementById('editSessionDate').value;
                 selectedEditItem.location = document.getElementById('editSessionLocation').value;
-                selectedEditItem.rpe = parseInt(document.getElementById('editSessionRPE').value);
                 selectedEditItem.rating = editRating;
                 selectedEditItem.notes = document.getElementById('editSessionNotes').value;
                 selectedEditItem.videos = document.getElementById('editSessionVideos').value;
@@ -1309,6 +1298,18 @@
             } else if (type === 'training') {
                 selectedEditItem.date = document.getElementById('editTrainingDate').value;
                 selectedEditItem.exercise = document.getElementById('editExercise').value;
+                const editSetsVal = document.getElementById('editTrainingSets').value.trim();
+                const editRepsVal = document.getElementById('editTrainingReps').value.trim();
+                if (editSetsVal !== '') {
+                    selectedEditItem.sets = parseInt(editSetsVal);
+                } else {
+                    delete selectedEditItem.sets;
+                }
+                if (editRepsVal !== '') {
+                    selectedEditItem.reps = parseInt(editRepsVal);
+                } else {
+                    delete selectedEditItem.reps;
+                }
                 selectedEditItem.weight = parseFloat(document.getElementById('editWeight').value);
                 selectedEditItem.performanceHighlight = document.getElementById('editTrainingHighlight').checked;
                 selectedEditItem.notes = document.getElementById('editTrainingNotes').value;
@@ -1429,8 +1430,6 @@
         function clearSessionForm() {
             document.getElementById('sessionNotes').value = '';
             document.getElementById('sessionVideos').value = '';
-            document.getElementById('sessionRPE').value = 5;
-            document.getElementById('rpeValue').textContent = '5';
             document.getElementById('sessionRating').value = 5;
             document.getElementById('ratingValue').textContent = '5';
             currentRating = 5;
@@ -1452,6 +1451,8 @@
             document.getElementById('trainingHighlight').checked = false;
             document.getElementById('weight').value = '';
             document.getElementById('exercise').value = '';
+            document.getElementById('trainingSets').value = '';
+            document.getElementById('trainingReps').value = '';
         }
 
         function showStatus(message, type) {
