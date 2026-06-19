@@ -385,10 +385,10 @@
             <!-- Main App -->
             <div id="mainApp" style="display: none;">
                 <div class="tabs">
-                    <button class="tab active" onclick="switchTab('session')">Session</button>
-                    <button class="tab" onclick="switchTab('climb')">Climb</button>
-                    <button class="tab" onclick="switchTab('training')">Training</button>
-                    <button class="tab" onclick="switchTab('edit')">Edit</button>
+                    <button class="tab active" onclick="switchTab('session', event)">Session</button>
+                    <button class="tab" onclick="switchTab('climb', event)">Climb</button>
+                    <button class="tab" onclick="switchTab('training', event)">Training</button>
+                    <button class="tab" onclick="switchTab('edit', event)">Edit</button>
                 </div>
 
                 <!-- Session Form -->
@@ -632,6 +632,14 @@
                 document.getElementById('ratingValue').textContent = this.value;
                 currentRating = parseInt(this.value);
             });
+
+            // Delegated click handler for boulder name chips (FIX #13)
+            document.getElementById('nameTags').addEventListener('click', function(e) {
+                const chip = e.target.closest('.name-tag');
+                if (chip && chip.dataset.name) {
+                    selectBoulderName(chip.dataset.name);
+                }
+            });
         }
 
         function saveSetup() {
@@ -691,7 +699,7 @@
             loadExercises();
         }
 
-        function switchTab(tab) {
+        function switchTab(tab, event) {
             document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
             document.querySelectorAll('.form-section').forEach(s => s.classList.remove('active'));
 
@@ -798,8 +806,8 @@
 
             if (existingBoulderNames.length > 0) {
                 existingDiv.style.display = 'block';
-                tagsDiv.innerHTML = existingBoulderNames.slice(0, 10).map(name => 
-                    `<span class="name-tag" onclick="selectBoulderName(\`${name.replace(/`/g, '\\`')}\`)">${escapeHtml(name)}</span>`
+                tagsDiv.innerHTML = existingBoulderNames.slice(0, 10).map(name =>
+                    `<span class="name-tag" data-name="${escapeHtml(name)}">${escapeHtml(name)}</span>`
                 ).join('');
             }
         }
@@ -1030,25 +1038,27 @@
             if (items.length === 0) {
                 container.innerHTML = '<p style="color: #6b7280;">No recent entries found</p>';
             } else {
-                const startIndex = currentEditData.length - items.length;
-                container.innerHTML = items.map((item, relativeIndex) => {
-                    const actualIndex = startIndex + (items.length - 1 - relativeIndex);
+                container.innerHTML = items.map((item) => {
                     let title = '';
                     let subtitle = '';
+                    let itemId = '';
 
                     if (type === 'sessions') {
                         title = `${item.date} - ${item.location}`;
                         subtitle = `RPE: ${item.rpe || 'Not set'} • Rating: ${item.rating || item.stars || 'Not set'}/10`;
+                        itemId = item.sessionId;
                     } else if (type === 'climbs') {
                         title = `${escapeHtml(item.boulderName)} (${item.grade})`;
                         subtitle = `${item.sendStatus} • ${item.isProject ? 'Project' : 'Regular'}`;
+                        itemId = item.climbId;
                     } else if (type === 'training') {
                         title = `${item.exercise} - ${item.weight}lbs`;
                         subtitle = `${item.date}`;
+                        itemId = item.trainingId;
                     }
 
                     return `
-                        <div class="edit-item" onclick="selectEditItem(${actualIndex}, '${type}')">
+                        <div class="edit-item" data-item-id="${escapeHtml(itemId)}" data-type="${type}" onclick="selectEditItem(this.dataset.itemId, this.dataset.type, event)">
                             <h5>${title}</h5>
                             <p>${subtitle}</p>
                         </div>
@@ -1059,9 +1069,13 @@
             recentItems.style.display = 'block';
         }
 
-        function selectEditItem(index, type) {
-            selectedEditItem = currentEditData[index];
-            currentEditIndex = index;
+        function selectEditItem(itemId, type, event) {
+            let idField;
+            if (type === 'sessions') idField = 'sessionId';
+            else if (type === 'climbs') idField = 'climbId';
+            else if (type === 'training') idField = 'trainingId';
+
+            selectedEditItem = currentEditData.find(item => item[idField] === itemId) || null;
 
             document.querySelectorAll('.edit-item').forEach(item => {
                 item.classList.remove('selected');
@@ -1356,9 +1370,17 @@
 
         async function confirmDelete() {
             const type = document.getElementById('editType').value;
-            
-            currentEditData.splice(currentEditIndex, 1);
-            
+
+            let idField;
+            if (type === 'sessions') idField = 'sessionId';
+            else if (type === 'climbs') idField = 'climbId';
+            else if (type === 'training') idField = 'trainingId';
+
+            const deleteIndex = currentEditData.findIndex(item => item[idField] === selectedEditItem[idField]);
+            if (deleteIndex !== -1) {
+                currentEditData.splice(deleteIndex, 1);
+            }
+
             if (await updateGitHubFile(type + '.json', currentEditData)) {
                 showStatus('Entry deleted successfully', 'success');
                 hideDeleteConfirmation();
