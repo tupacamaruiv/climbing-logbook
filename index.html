@@ -929,7 +929,7 @@
                 timestamp: new Date().toISOString()
             };
 
-            if (!trainingData.date || !trainingData.exercise || !trainingData.weight) {
+            if (!trainingData.date || !trainingData.exercise || isNaN(trainingData.weight)) {
                 showStatus('Please fill in date, exercise, and weight', 'error');
                 return;
             }
