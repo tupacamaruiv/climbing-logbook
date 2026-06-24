@@ -1428,5 +1428,16 @@
     "performanceHighlight": false,
     "notes": "Owned these. ",
     "timestamp": "2026-06-19T17:41:03.227Z"
+  },
+  {
+    "trainingId": "T1782295850314",
+    "date": "2026-06-24",
+    "exercise": "Bench Press",
+    "sets": 3,
+    "reps": 6,
+    "weight": 115,
+    "performanceHighlight": false,
+    "notes": "Lower load today. ",
+    "timestamp": "2026-06-24T10:10:50.314Z"
   }
 ]
