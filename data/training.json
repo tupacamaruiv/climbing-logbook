@@ -1493,5 +1493,16 @@
     "performanceHighlight": false,
     "notes": "3 plates ",
     "timestamp": "2026-06-24T11:02:35.780Z"
+  },
+  {
+    "trainingId": "T1782298979392",
+    "date": "2026-06-24",
+    "exercise": "20mm Lift",
+    "sets": 2,
+    "reps": 5,
+    "weight": 60,
+    "performanceHighlight": false,
+    "notes": "Felt heavy and grip was breaking. ",
+    "timestamp": "2026-06-24T11:02:59.392Z"
   }
 ]
