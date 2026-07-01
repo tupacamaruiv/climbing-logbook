@@ -1526,5 +1526,16 @@
     "performanceHighlight": false,
     "notes": "",
     "timestamp": "2026-06-24T11:11:37.184Z"
+  },
+  {
+    "trainingId": "T1782932234818",
+    "date": "2026-07-01",
+    "exercise": "Split Squat",
+    "sets": 2,
+    "reps": 8,
+    "weight": 45,
+    "performanceHighlight": false,
+    "notes": "",
+    "timestamp": "2026-07-01T18:57:14.818Z"
   }
 ]
