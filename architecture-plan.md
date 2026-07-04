@@ -4,36 +4,15 @@
 
 ---
 
-## ⬅️ RESUME HERE (as of 2026-07-04, evening)
+## ✅ Migration complete (2026-07-04)
 
-Steps 1–6 are done and verified. Everything below is what's left, in order. Items 1–3 are manual (dashboard/browser); Claude can help with 4–6.
+All steps done except one: **connect the Supabase MCP to the Claude.ai project** (Step 7). That happens on claude.ai, not in this repo: claude.ai → Settings → Connectors → add the official Supabase connector (`mcp.supabase.com`), authorize it against this project (`albnsouvcxmchiqolggc`), then enable it in the climbing project. Test with a query like "how many V6s have I sent?" — it should run SQL against `climbs` directly.
 
-### 1. Paste the anon key ✅ Done 2026-07-04
-Anon key pasted into `index.html` (~line 560) and committed — verified it's the anon-role key, not service_role.
-
-### 2. First sign-in
-Open the app — it shows a sign-in form (Option B RLS). Sign in as the Supabase auth user `ceparedes7@gmail.com` (created 2026-06-20; reset the password in Supabase → Authentication → Users if forgotten). The session persists in localStorage, so this is one-time per browser/device — remember to do it once on the phone too.
-
-### 3. Step 8 — end-to-end test
-REST-level integrity checks already passed (2026-07-04); what's left is the live browser test:
-- Page load: location + exercise dropdowns populate (proves reads + auth work).
-- Log a real session, a climb attached to it, and a training entry (proves all three insert paths).
-- Edit and delete one test entry (proves update/delete paths).
-- Confirm the rows in Supabase → Table Editor. Note: test rows are in the DB only — the JSON files are frozen, so deleting test rows via the app's edit panel is the cleanup.
-
-### 4. Step 7 — connect Supabase MCP to the Claude.ai project
-Done on claude.ai (not in this repo): claude.ai → Settings → Connectors → add the official Supabase connector (`mcp.supabase.com`), authorize it against this project (`albnsouvcxmchiqolggc`), then enable it in the climbing project. Test with a query like "how many V6s have I sent?" — it should run SQL against `climbs` directly.
-
-### 5. Step 9 — archive the JSON files ✅ Done 2026-07-04
-All four JSON files moved to `data/archive/` (via `git mv`, staged but not yet committed). `migrate.py` paths updated to match, so it can still be rerun; `data/README.md` updated to say the folder is a frozen pre-migration backup.
-
-### 6. Cleanup + commit
-- **Delete `.env.migration`** once you're confident you won't rerun `migrate.py` — it holds the service-role key in plaintext. (If it ever leaks, rotate the key in Supabase dashboard → Project Settings → API.)
-- Commit the pending work: modified `index.html` + `architecture-plan.md` + `data/README.md`, new `migrate.py` + `.gitignore`, and the `data/*.json` → `data/archive/` moves (already staged). The anon key is safe to commit (it's public by design; RLS is the protection) — the service-role key is not, and `.gitignore` already covers `.env.migration`.
+Live browser test passed 2026-07-04: dropdowns populate, all three insert paths work, edit/delete works, rows confirmed in the Table Editor. Cleanup done: `.env.migration` (service-role key) deleted; `migrate.py` served its purpose and was removed — it lives in git history (commit `5d1a44b`) if ever needed, and would need the service-role key re-copied into a new `.env.migration` to rerun.
 
 ### State notes (context for whoever picks this up)
 - **Data migration (Step 4) ran clean on 2026-07-04**: sessions 108, climbs 57, training 169 — 0 errors, counts verified. Post-checks: 0 orphan climbs, 4 training rows with `updated_at`, no empty-string media, lookup tables intact (4 locations, 18 exercises).
-- `migrate.py` is safe to rerun (upserts on primary keys) — but only before new entries are logged via the app; after that, a rerun would overwrite newer edits of migrated rows with stale JSON values (new rows are untouched).
+- Do **not** rerun the migration (git history, commit `5d1a44b`): entries are now logged via the app, so a rerun would overwrite newer edits of migrated rows with stale JSON values from `data/archive/`.
 - `index.html` is fully Supabase-backed via supabase-js v2 (CDN): all GitHub API code removed (submit handlers, edit/delete flows, reads, dropdowns, token setup UI). The old GitHub Setup panel is now the sign-in panel. Auth failures on writes route back to sign-in.
 - Column renames to remember when querying: `videos`→`media`, `timestamp`→`created_at`, `lastUpdated`→`updated_at`; `rpe` and `gradeSystem` were intentionally dropped.
 
@@ -173,7 +152,7 @@ CREATE TABLE training (
 | 5 | Update web app submit handlers (3 forms: session, climb, training) | ✅ Done 2026-07-04 — supabase-js + sign-in flow; edit/delete flows converted too. 🔶 Blocked on pasting anon key into `index.html` |
 | 6 | Update web app dropdowns to load from Supabase | ✅ Done 2026-07-04 — locations + exercises DB-driven (`active=true`, ordered by name) |
 | 7 | Connect Supabase MCP to Claude.ai project | |
-| 8 | End-to-end test with a live session log | 🔶 REST-level integrity checks passed; live browser test blocked on anon key |
+| 8 | End-to-end test with a live session log | ✅ Done 2026-07-04 — live browser test passed (reads, all 3 inserts, edit, delete) |
 | 9 | Archive GitHub JSON files (keep as backup, stop writing to them) | ✅ Done 2026-07-04 — moved to `data/archive/`, migrate.py paths updated |
 
 ---
@@ -310,7 +289,7 @@ async function loadLocations() {
 
 ## Migration Script (Step 4)
 
-**The live script is [`migrate.py`](migrate.py) in the repo root** — it supersedes the draft below. Differences from the draft: stdlib-only (no `pip install requests` needed), credentials read from git-ignored `.env.migration` instead of hardcoded, upserts on primary key (safe to rerun), training remap includes `updated_at`, `rpe` dropped per the 2026-07-04 decision (rating is the kept field), and automatic row-count verification at the end.
+**The live script was `migrate.py` in the repo root** (removed after the migration completed — see git history, commit `5d1a44b`) — it supersedes the draft below. Differences from the draft: stdlib-only (no `pip install requests` needed), credentials read from git-ignored `.env.migration` instead of hardcoded, upserts on primary key (safe to rerun), training remap includes `updated_at`, `rpe` dropped per the 2026-07-04 decision (rating is the kept field), and automatic row-count verification at the end.
 
 Fill in `.env.migration`, then run from the repo root: `python migrate.py`
 
