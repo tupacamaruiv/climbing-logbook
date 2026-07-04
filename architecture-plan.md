@@ -4,6 +4,41 @@
 
 ---
 
+## ⬅️ RESUME HERE (as of 2026-07-04, evening)
+
+Steps 1–6 are done and verified. Everything below is what's left, in order. Items 1–3 are manual (dashboard/browser); Claude can help with 4–6.
+
+### 1. Paste the anon key ✅ Done 2026-07-04
+Anon key pasted into `index.html` (~line 560) and committed — verified it's the anon-role key, not service_role.
+
+### 2. First sign-in
+Open the app — it shows a sign-in form (Option B RLS). Sign in as the Supabase auth user `ceparedes7@gmail.com` (created 2026-06-20; reset the password in Supabase → Authentication → Users if forgotten). The session persists in localStorage, so this is one-time per browser/device — remember to do it once on the phone too.
+
+### 3. Step 8 — end-to-end test
+REST-level integrity checks already passed (2026-07-04); what's left is the live browser test:
+- Page load: location + exercise dropdowns populate (proves reads + auth work).
+- Log a real session, a climb attached to it, and a training entry (proves all three insert paths).
+- Edit and delete one test entry (proves update/delete paths).
+- Confirm the rows in Supabase → Table Editor. Note: test rows are in the DB only — the JSON files are frozen, so deleting test rows via the app's edit panel is the cleanup.
+
+### 4. Step 7 — connect Supabase MCP to the Claude.ai project
+Done on claude.ai (not in this repo): claude.ai → Settings → Connectors → add the official Supabase connector (`mcp.supabase.com`), authorize it against this project (`albnsouvcxmchiqolggc`), then enable it in the climbing project. Test with a query like "how many V6s have I sent?" — it should run SQL against `climbs` directly.
+
+### 5. Step 9 — archive the JSON files ✅ Done 2026-07-04
+All four JSON files moved to `data/archive/` (via `git mv`, staged but not yet committed). `migrate.py` paths updated to match, so it can still be rerun; `data/README.md` updated to say the folder is a frozen pre-migration backup.
+
+### 6. Cleanup + commit
+- **Delete `.env.migration`** once you're confident you won't rerun `migrate.py` — it holds the service-role key in plaintext. (If it ever leaks, rotate the key in Supabase dashboard → Project Settings → API.)
+- Commit the pending work: modified `index.html` + `architecture-plan.md` + `data/README.md`, new `migrate.py` + `.gitignore`, and the `data/*.json` → `data/archive/` moves (already staged). The anon key is safe to commit (it's public by design; RLS is the protection) — the service-role key is not, and `.gitignore` already covers `.env.migration`.
+
+### State notes (context for whoever picks this up)
+- **Data migration (Step 4) ran clean on 2026-07-04**: sessions 108, climbs 57, training 169 — 0 errors, counts verified. Post-checks: 0 orphan climbs, 4 training rows with `updated_at`, no empty-string media, lookup tables intact (4 locations, 18 exercises).
+- `migrate.py` is safe to rerun (upserts on primary keys) — but only before new entries are logged via the app; after that, a rerun would overwrite newer edits of migrated rows with stale JSON values (new rows are untouched).
+- `index.html` is fully Supabase-backed via supabase-js v2 (CDN): all GitHub API code removed (submit handlers, edit/delete flows, reads, dropdowns, token setup UI). The old GitHub Setup panel is now the sign-in panel. Auth failures on writes route back to sign-in.
+- Column renames to remember when querying: `videos`→`media`, `timestamp`→`created_at`, `lastUpdated`→`updated_at`; `rpe` and `gradeSystem` were intentionally dropped.
+
+---
+
 ## Current Data Architecture
 
 Four flat JSON files in a GitHub repo. Schema derived from live data:
@@ -134,18 +169,18 @@ CREATE TABLE training (
 | 1 | Create Supabase project | ✅ Done |
 | 2 | Run table creation SQL in Supabase SQL Editor | ✅ Done — Option B (authenticated-only) RLS |
 | 3 | Seed lookup tables (locations + exercises) | ✅ Done — 4 locations, 18 exercises, categories NULL for now |
-| 4 | Install Python, then run migration script for existing JSON records | ⬅️ Next — see Step 4 details below |
-| 5 | Update web app submit handlers (3 forms: session, climb, training) | |
-| 6 | Update web app dropdowns to load from Supabase | |
+| 4 | Install Python, then run migration script for existing JSON records | ✅ Done 2026-07-04 — 108/57/169 rows migrated, 0 errors, counts + integrity verified |
+| 5 | Update web app submit handlers (3 forms: session, climb, training) | ✅ Done 2026-07-04 — supabase-js + sign-in flow; edit/delete flows converted too. 🔶 Blocked on pasting anon key into `index.html` |
+| 6 | Update web app dropdowns to load from Supabase | ✅ Done 2026-07-04 — locations + exercises DB-driven (`active=true`, ordered by name) |
 | 7 | Connect Supabase MCP to Claude.ai project | |
-| 8 | End-to-end test with a live session log | |
-| 9 | Archive GitHub JSON files (keep as backup, stop writing to them) | |
+| 8 | End-to-end test with a live session log | 🔶 REST-level integrity checks passed; live browser test blocked on anon key |
+| 9 | Archive GitHub JSON files (keep as backup, stop writing to them) | ✅ Done 2026-07-04 — moved to `data/archive/`, migrate.py paths updated |
 
 ---
 
-## Open Decision: Row Level Security
+## Row Level Security — ✅ Decided and applied: Option B (authenticated-only)
 
-RLS should be enabled on all tables. The question is which policy to use.
+Resolved at Step 2: RLS is enabled on all five tables with Option B policies. Kept below for reference — Option B has a follow-up task at Step 5 (create a Supabase user and add the silent sign-in to the web app).
 
 **Option A — Anon-open (simpler):**
 Enable RLS with a permissive policy that allows all operations for the anon key. Functionally identical to no RLS, but the flag is on and the policy can be tightened later. Anyone who finds the anon key in the page source can read and write your data.
@@ -188,6 +223,8 @@ await supabase.auth.signInWithPassword({ email: '...', password: '...' });
 ## Web App Changes (Step 5)
 
 Replace the GitHub commit handler with Supabase REST calls. The `videos` field is renamed to `media` in the process.
+
+> **⚠️ Option B RLS is live**, so the raw-anon-key pattern below will be rejected (401/permission denied) as-is. At Step 5, also: create a user in Supabase → Authentication → Users, sign in via `supabase.auth.signInWithPassword(...)` on page load, and send the resulting session's access token as the `Authorization: Bearer` value (the `supabase-js` client does this automatically — simplest path is to use it instead of raw `fetch`). The `apikey` header stays the anon key either way.
 
 **Current pattern:**
 ```javascript
@@ -248,26 +285,22 @@ async function loadLocations() {
 
 ### Install Python on Windows
 
-Python and Node.js are not installed on this machine. The migration script requires Python. Install it first:
+✅ Done 2026-07-04 — Python 3.12.10 installed via `winget install Python.Python.3.12` and added to the user PATH (open a **new** terminal for `python` to resolve). No `pip install` needed; `migrate.py` uses only the standard library.
 
-1. Go to **python.org/downloads** and click "Download Python 3.x.x" (latest stable)
-2. Run the installer `.exe`
-3. **Critical:** On the first screen, check **"Add Python to PATH"** before clicking Install Now
-4. Click "Install Now" and let it complete
-5. Open a new PowerShell window and verify: `python --version`
-6. Install the `requests` library: `pip install requests`
+### Data Notes (updated 2026-07-04 after full validation)
 
-### Data Notes (discovered during migration planning)
-
-**Record counts in the JSON files:**
-- `sessions.json`: 102 records
+**Record counts in the JSON files (data grew since the plan was first written):**
+- `sessions.json`: 108 records
 - `climbs.json`: 57 records
-- `training.json`: 158 records
+- `training.json`: 169 records
 - `exercises.json`: 18 records (already seeded in Step 3 — skip this file)
 
-**Data quirks to be aware of:**
-- Sessions have both an `rpe` field and a `rating` field with the same value. The schema uses `rating`. The `rpe` field is dropped during migration.
-- Empty `videos` strings (`""`) are migrated as `null` (the `media` column is `TEXT`, null is cleaner than empty string). The migration script handles this with `or None`.
+**Validation results (2026-07-04):** all locations, exercises, and send statuses match the seeded lookup tables and CHECK constraints; no FK violations, no duplicate IDs, no missing required fields. The data migrates clean.
+
+**Data quirks:**
+- ~~Sessions `rpe` always equals `rating`~~ Wrong — 57 of 108 sessions have `rpe` ≠ `rating`, and the 8 newest sessions have no `rpe` field at all. **Decision (2026-07-04): keep `rating` only; all `rpe` values are intentionally dropped in the migration.**
+- 4 training records have a `lastUpdated` field; the migration maps it to `updated_at` (the original plan draft missed this).
+- Empty `videos` strings (`""`) are migrated as `null` (the `media` column is `TEXT`, null is cleaner than empty string).
 
 **Supabase credentials needed:**
 - Project URL: `https://xxxx.supabase.co` (from Supabase dashboard → Project Settings → API)
@@ -277,8 +310,14 @@ Python and Node.js are not installed on this machine. The migration script requi
 
 ## Migration Script (Step 4)
 
-Fill in your credentials at the top, then run from the repo root:
-`python migrate.py`
+**The live script is [`migrate.py`](migrate.py) in the repo root** — it supersedes the draft below. Differences from the draft: stdlib-only (no `pip install requests` needed), credentials read from git-ignored `.env.migration` instead of hardcoded, upserts on primary key (safe to rerun), training remap includes `updated_at`, `rpe` dropped per the 2026-07-04 decision (rating is the kept field), and automatic row-count verification at the end.
+
+Fill in `.env.migration`, then run from the repo root: `python migrate.py`
+
+**Expected output after a clean run:** `sessions: 108, climbs: 57, training: 169` inserted, 0 errors, all counts verified.
+
+<details>
+<summary>Original draft script (superseded by migrate.py — kept for reference)</summary>
 
 ```python
 import json, requests
@@ -355,14 +394,9 @@ migrate('data/training.json', 'training', {
 })
 ```
 
-**Expected output after a clean run:**
-```
-sessions: 102 inserted, 0 errors
-climbs: 57 inserted, 0 errors
-training: 158 inserted, 0 errors
-```
+</details>
 
-After running, verify counts in Supabase → Table Editor for each table.
+After running, verify counts in Supabase → Table Editor for each table (migrate.py also does this automatically).
 
 ---
 

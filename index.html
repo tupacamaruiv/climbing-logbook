@@ -7,6 +7,7 @@
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Roboto+Mono:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <style>
         * { margin: 0; padding: 0; box-sizing: border-box; }
         
@@ -50,22 +51,22 @@
         
         .form-container { padding: 24px; }
         
-        .github-setup {
+        .auth-setup {
             background: #f8fafc;
             border: 1px solid #e2e8f0;
             border-radius: 12px;
             padding: 16px;
             margin-bottom: 24px;
         }
-        
-        .github-setup h3 {
+
+        .auth-setup h3 {
             color: #374151;
             margin-bottom: 12px;
             font-size: 1rem;
             font-weight: 600;
         }
-        
-        .github-setup p {
+
+        .auth-setup p {
             font-size: 0.8rem;
             color: #6b7280;
             margin-bottom: 12px;
@@ -372,20 +373,18 @@
         </div>
 
         <div class="form-container">
-            <!-- GitHub Setup -->
-            <div class="github-setup" id="githubSetup">
-                <h3>Setup Required</h3>
-                <p>Enter your GitHub repository details to get started:</p>
+            <!-- Sign In -->
+            <div class="auth-setup" id="authSetup" style="display: none;">
+                <h3>Sign In</h3>
+                <p>Sign in to your logbook to continue:</p>
                 <div class="form-group">
-                    <input type="text" id="githubRepo" placeholder="username/climbing-logbook" />
+                    <input type="email" id="authEmail" placeholder="Email" autocomplete="username" />
                 </div>
                 <div class="form-group">
-                    <input type="password" id="githubToken" placeholder="GitHub Personal Access Token" />
+                    <input type="password" id="authPassword" placeholder="Password" autocomplete="current-password" />
                 </div>
-                <p class="help-text">Generate token at: github.com/settings/tokens</p>
                 <div class="setup-buttons">
-                    <button class="setup-button" onclick="saveSetup()">Save & Continue</button>
-                    <button class="setup-button" onclick="testConnection()">Test Connection</button>
+                    <button class="setup-button" onclick="signIn()">Sign In</button>
                 </div>
             </div>
 
@@ -555,16 +554,21 @@
     </div>
 
     <script>
-        const LOCATIONS = ['Peak Boulders', 'Peak Midlo Board', 'Triangle Boulders', 'Triangle Board'];
+        const SUPABASE_URL = 'https://albnsouvcxmchiqolggc.supabase.co';
+        // Paste the anon (public) key from Supabase dashboard → Project Settings → API.
+        // NEVER put the service_role key here — it bypasses Row Level Security.
+        const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImFsYm5zb3V2Y3htY2hpcW9sZ2djIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODE4OTg1NTMsImV4cCI6MjA5NzQ3NDU1M30.Z70RvcnLCXv29fPCF0VZPMkGRePmFph8qlEq_d7cl_M';
+        // window.supabase is the supabase-js UMD global, so keep the client under a different name
+        const sb = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
         let currentRating = 5;
         let editRating = 5;
         let existingBoulderNames = [];
         let selectedEditItem = null;
         let currentEditData = [];
-        let currentEditIndex = -1;
         let availableSessions = [];
         let availableExercises = [];
+        let availableLocations = [];
 
         // Helper function to properly escape HTML for safe display
         function escapeHtml(text) {
@@ -582,49 +586,51 @@
             }
         }
 
-        // Helper function to convert Uint8Array to base64 in chunks
-        // Avoids call stack overflow for large files
-        function uint8ArrayToBase64(bytes) {
-            let binary = '';
-            const chunkSize = 8192;
-            for (let i = 0; i < bytes.length; i += chunkSize) {
-                const chunk = bytes.subarray(i, i + chunkSize);
-                binary += String.fromCharCode.apply(null, chunk);
-            }
-            return btoa(binary);
+        // Convert empty strings (and undefined) to null so they store as NULL in Postgres
+        function toNull(value) {
+            return value === '' || value === undefined ? null : value;
         }
 
-        // Helper function to properly decode base64 to UTF-8
-        // Fixes corruption caused by atob() not handling multi-byte UTF-8
-        function base64ToUtf8(base64) {
-            const bytes = Uint8Array.from(atob(base64), c => c.charCodeAt(0));
-            return new TextDecoder().decode(bytes);
+        // Map database rows (snake_case) to app objects (camelCase)
+        function rowToSession(r) {
+            return {
+                sessionId: r.session_id, date: r.date, location: r.location,
+                rating: r.rating, notes: r.notes, videos: r.media,
+                timestamp: r.created_at, lastUpdated: r.updated_at
+            };
+        }
+
+        function rowToClimb(r) {
+            return {
+                climbId: r.climb_id, sessionId: r.session_id, boulderName: r.boulder_name,
+                grade: r.grade, sendStatus: r.send_status, isProject: r.is_project,
+                attempts: r.attempts, performanceHighlight: r.performance_highlight,
+                notes: r.notes, videos: r.media,
+                timestamp: r.created_at, lastUpdated: r.updated_at
+            };
+        }
+
+        function rowToTraining(r) {
+            return {
+                trainingId: r.training_id, date: r.date, exercise: r.exercise,
+                sets: r.sets, reps: r.reps, weight: r.weight,
+                performanceHighlight: r.performance_highlight, notes: r.notes,
+                timestamp: r.created_at, lastUpdated: r.updated_at
+            };
+        }
+
+        function isAuthError(error) {
+            const msg = ((error && error.message) || '').toLowerCase();
+            return (error && error.code === '42501') || msg.includes('jwt') ||
+                msg.includes('not authenticated') || msg.includes('row-level security');
         }
 
         document.addEventListener('DOMContentLoaded', initializeApp);
 
-        function initializeApp() {
+        async function initializeApp() {
             const today = new Date().toISOString().split('T')[0];
             document.getElementById('sessionDate').value = today;
             document.getElementById('trainingDate').value = today;
-
-            // Populate session location select from LOCATIONS constant
-            const locationSelect = document.getElementById('sessionLocation');
-            LOCATIONS.forEach(loc => {
-                const option = document.createElement('option');
-                option.value = loc;
-                option.textContent = loc;
-                locationSelect.appendChild(option);
-            });
-
-            const savedRepo = localStorage.getItem('githubRepo');
-            const savedToken = localStorage.getItem('githubToken');
-
-            if (savedRepo && savedToken) {
-                document.getElementById('githubRepo').value = savedRepo;
-                document.getElementById('githubToken').value = savedToken;
-                showMainApp();
-            }
 
             document.getElementById('sessionRating').addEventListener('input', function() {
                 document.getElementById('ratingValue').textContent = this.value;
@@ -638,69 +644,59 @@
                     selectBoulderName(chip.dataset.name);
                 }
             });
-        }
 
-        function saveSetup() {
-            const repo = document.getElementById('githubRepo').value.trim();
-            const token = document.getElementById('githubToken').value.trim();
+            // Sign in on Enter from the password field
+            document.getElementById('authPassword').addEventListener('keydown', function(e) {
+                if (e.key === 'Enter') signIn();
+            });
 
-            if (!repo || !token) {
-                showStatus('Please enter both repository and token', 'error');
-                return;
-            }
-
-            if (!repo.includes('/')) {
-                showStatus('Repository should be in format: username/repository-name', 'error');
-                return;
-            }
-
-            localStorage.setItem('githubRepo', repo);
-            localStorage.setItem('githubToken', token);
-            showStatus('Setup saved successfully!', 'success');
-            setTimeout(showMainApp, 1000);
-        }
-
-        async function testConnection() {
-            const repo = document.getElementById('githubRepo').value.trim();
-            const token = document.getElementById('githubToken').value.trim();
-
-            if (!repo || !token) {
-                showStatus('Please enter both repository and token', 'error');
-                return;
-            }
-
+            // supabase-js persists the session in localStorage — reuse it if present
             try {
-                const response = await fetch(`https://api.github.com/repos/${repo}`, {
-                    headers: { 'Authorization': `token ${token}` }
-                });
-
-                if (response.ok) {
-                    showStatus('Connection successful! ✅', 'success');
-                    saveSetup();
-                } else if (response.status === 404) {
-                    showStatus('Repository not found. Check the name.', 'error');
-                } else if (response.status === 401) {
-                    showStatus('Invalid token. Check your access token.', 'error');
+                const { data } = await sb.auth.getSession();
+                if (data && data.session) {
+                    showMainApp();
                 } else {
-                    showStatus(`Connection failed: ${response.statusText}`, 'error');
+                    showAuthSetup();
                 }
             } catch (error) {
-                showStatus('Network error. Check your connection.', 'error');
+                showAuthSetup();
             }
+        }
+
+        async function signIn() {
+            const email = document.getElementById('authEmail').value.trim();
+            const password = document.getElementById('authPassword').value;
+
+            if (!email || !password) {
+                showStatus('Please enter both email and password', 'error');
+                return;
+            }
+
+            const { error } = await sb.auth.signInWithPassword({ email, password });
+
+            if (error) {
+                showStatus(`Sign-in failed: ${error.message}`, 'error');
+                return;
+            }
+
+            document.getElementById('authPassword').value = '';
+            showStatus('Signed in!', 'success');
+            showMainApp();
         }
 
         function showMainApp() {
-            document.getElementById('githubSetup').style.display = 'none';
+            document.getElementById('authSetup').style.display = 'none';
             document.getElementById('mainApp').style.display = 'block';
+            loadLocations();
             loadSessions();
             loadBoulderNames();
             loadExercises();
         }
 
-        function showGitHubSetup(message) {
+        function showAuthSetup(message) {
             document.getElementById('mainApp').style.display = 'none';
-            document.getElementById('githubSetup').style.display = 'block';
-            showStatus(message || 'GitHub token expired or invalid. Please update your token.', 'error');
+            document.getElementById('authSetup').style.display = 'block';
+            if (message) showStatus(message, 'error');
         }
 
         function switchTab(tab, event) {
@@ -719,24 +715,41 @@
             }
         }
 
-        async function loadSessions() {
-            try {
-                const repo = localStorage.getItem('githubRepo');
-                const token = localStorage.getItem('githubToken');
-                
-                const response = await fetch(`https://api.github.com/repos/${repo}/contents/data/sessions.json`, {
-                    headers: { 'Authorization': `token ${token}` }
-                });
+        async function loadLocations() {
+            const { data, error } = await sb.from('locations')
+                .select('name')
+                .eq('active', true)
+                .order('name');
 
-                if (response.ok) {
-                    const data = await response.json();
-                    const sessions = JSON.parse(base64ToUtf8(data.content));
-                    availableSessions = sessions;
-                    updateSessionDropdown(sessions);
-                }
-            } catch (error) {
-                console.log('No sessions found yet');
+            if (error) {
+                console.log('Failed to load locations:', error.message);
+                return;
             }
+
+            availableLocations = data.map(l => l.name);
+
+            const locationSelect = document.getElementById('sessionLocation');
+            locationSelect.innerHTML = '<option value="">Choose location...</option>';
+            availableLocations.forEach(loc => {
+                const option = document.createElement('option');
+                option.value = loc;
+                option.textContent = loc;
+                locationSelect.appendChild(option);
+            });
+        }
+
+        async function loadSessions() {
+            const { data, error } = await sb.from('sessions')
+                .select('session_id, date, location')
+                .order('date', { ascending: false });
+
+            if (error) {
+                console.log('Failed to load sessions:', error.message);
+                return;
+            }
+
+            availableSessions = data.map(rowToSession);
+            updateSessionDropdown(availableSessions);
         }
 
         function updateSessionDropdown(sessions) {
@@ -757,38 +770,27 @@
         }
 
         async function loadBoulderNames() {
-            try {
-                const repo = localStorage.getItem('githubRepo');
-                const token = localStorage.getItem('githubToken');
-                
-                const response = await fetch(`https://api.github.com/repos/${repo}/contents/data/climbs.json`, {
-                    headers: { 'Authorization': `token ${token}` }
+            const { data, error } = await sb.from('climbs')
+                .select('boulder_name')
+                .order('created_at', { ascending: false });
+
+            if (error) {
+                console.log('Failed to load climbs:', error.message);
+                return;
+            }
+
+            const seen = new Set();
+            existingBoulderNames = data
+                .map(c => c.boulder_name)
+                .filter(name => {
+                    if (name && !seen.has(name)) {
+                        seen.add(name);
+                        return true;
+                    }
+                    return false;
                 });
 
-                if (response.ok) {
-                    const data = await response.json();
-                    const climbs = JSON.parse(base64ToUtf8(data.content));
-
-                    const sortedClimbs = climbs.sort((a, b) =>
-                        new Date(b.timestamp) - new Date(a.timestamp)
-                    );
-                    
-                    const seen = new Set();
-                    existingBoulderNames = sortedClimbs
-                        .map(c => c.boulderName)
-                        .filter(name => {
-                            if (name && !seen.has(name)) {
-                                seen.add(name);
-                                return true;
-                            }
-                            return false;
-                        });
-                    
-                    updateBoulderNameDisplay();
-                }
-            } catch (error) {
-                console.log('No climbs found yet');
-            }
+            updateBoulderNameDisplay();
         }
 
         function updateBoulderNameDisplay() {
@@ -803,52 +805,25 @@
             }
         }
 
-        // Load exercises list from repo if available, otherwise from local file
         async function loadExercises() {
-            try {
-                const repo = localStorage.getItem('githubRepo');
-                const token = localStorage.getItem('githubToken');
+            const { data, error } = await sb.from('exercises')
+                .select('name')
+                .eq('active', true)
+                .order('name');
 
-                if (repo && token) {
-                    const response = await fetch(`https://api.github.com/repos/${repo}/contents/data/exercises.json`, {
-                        headers: { 'Authorization': `token ${token}` }
-                    });
-
-                    if (response.ok) {
-                        const data = await response.json();
-                        availableExercises = JSON.parse(base64ToUtf8(data.content));
-                    }
-                } else {
-                    // Fallback to local file when not configured with GitHub
-                    const localResp = await fetch('data/exercises.json');
-                    if (localResp.ok) {
-                        availableExercises = await localResp.json();
-                    }
-                }
-            } catch (err) {
-                console.log('No exercises found or failed to load');
+            if (error) {
+                console.log('Failed to load exercises:', error.message);
                 availableExercises = [];
+            } else {
+                availableExercises = data.map(e => e.name);
             }
-
-            // Sort exercises alphabetically (case-insensitive)
-            availableExercises.sort((a, b) => a.toLowerCase().localeCompare(b.toLowerCase()));
 
             // Populate training select
             const exerciseSelect = document.getElementById('exercise');
             if (exerciseSelect) {
                 // preserve placeholder
                 const placeholder = '<option value="">Choose exercise...</option>';
-                exerciseSelect.innerHTML = placeholder + (availableExercises.map(e => `\n                    <option value="${e}">${escapeHtml(e)}</option>`).join(''));
-            }
-        }
-
-        // Helper function to insert exercise in alphabetical order
-        function insertExerciseAlphabetically(newExercise) {
-            const index = availableExercises.findIndex(e => e.toLowerCase() > newExercise.toLowerCase());
-            if (index === -1) {
-                availableExercises.push(newExercise);
-            } else {
-                availableExercises.splice(index, 0, newExercise);
+                exerciseSelect.innerHTML = placeholder + (availableExercises.map(e => `\n                    <option value="${escapeHtml(e)}">${escapeHtml(e)}</option>`).join(''));
             }
         }
 
@@ -858,23 +833,23 @@
 
         async function submitSession() {
             const now = new Date();
-            const sessionData = {
-                sessionId: 'S' + Date.now(),
+            const row = {
+                session_id: 'S' + Date.now(),
                 date: document.getElementById('sessionDate').value || now.toISOString().split('T')[0],
-                location: document.getElementById('sessionLocation').value,
+                location: toNull(document.getElementById('sessionLocation').value),
                 rating: currentRating,
-                notes: document.getElementById('sessionNotes').value,
-                videos: document.getElementById('sessionVideos').value,
-                timestamp: now.toISOString()
+                notes: toNull(document.getElementById('sessionNotes').value),
+                media: toNull(document.getElementById('sessionVideos').value),
+                created_at: now.toISOString()
             };
 
-            if (!sessionData.location) {
+            if (!row.location) {
                 showStatus('Please fill in location', 'error');
                 return;
             }
 
-            if (await submitToGitHub('sessions.json', sessionData)) {
-                localStorage.setItem('lastLocation', sessionData.location);
+            if (await insertRow('sessions', row, 'Session')) {
+                localStorage.setItem('lastLocation', row.location);
                 clearSessionForm();
                 loadSessions();
             }
@@ -888,27 +863,26 @@
                 return;
             }
 
-            const climbData = {
-                climbId: 'C' + Date.now(),
-                sessionId: sessionId,
-                boulderName: document.getElementById('boulderName').value,
-                grade: document.getElementById('climbGrade').value,
-                gradeSystem: document.getElementById('climbGrade').value.trim().toUpperCase().startsWith('B') ? 'B' : 'V',
-                sendStatus: document.getElementById('sendStatus').value,
-                isProject: document.getElementById('isProject').checked,
+            const row = {
+                climb_id: 'C' + Date.now(),
+                session_id: sessionId,
+                boulder_name: toNull(document.getElementById('boulderName').value),
+                grade: toNull(document.getElementById('climbGrade').value),
+                send_status: toNull(document.getElementById('sendStatus').value),
+                is_project: document.getElementById('isProject').checked,
                 attempts: parseInt(document.getElementById('attempts').value),
-                performanceHighlight: document.getElementById('climbHighlight').checked,
-                notes: document.getElementById('climbNotes').value,
-                videos: document.getElementById('climbVideos').value,
-                timestamp: new Date().toISOString()
+                performance_highlight: document.getElementById('climbHighlight').checked,
+                notes: toNull(document.getElementById('climbNotes').value),
+                media: toNull(document.getElementById('climbVideos').value),
+                created_at: new Date().toISOString()
             };
 
-            if (!climbData.boulderName || !climbData.grade || !climbData.sendStatus) {
+            if (!row.boulder_name || !row.grade || !row.send_status) {
                 showStatus('Please fill in boulder name, grade, and send status', 'error');
                 return;
             }
 
-            if (await submitToGitHub('climbs.json', climbData)) {
+            if (await insertRow('climbs', row, 'Climb')) {
                 clearClimbForm();
                 loadBoulderNames();
             }
@@ -917,127 +891,42 @@
         async function submitTraining() {
             const setsVal = document.getElementById('trainingSets').value.trim();
             const repsVal = document.getElementById('trainingReps').value.trim();
-            const trainingData = {
-                trainingId: 'T' + Date.now(),
-                date: document.getElementById('trainingDate').value,
-                exercise: document.getElementById('exercise').value,
-                ...(setsVal !== '' && { sets: parseInt(setsVal) }),
-                ...(repsVal !== '' && { reps: parseInt(repsVal) }),
+            const row = {
+                training_id: 'T' + Date.now(),
+                date: toNull(document.getElementById('trainingDate').value),
+                exercise: toNull(document.getElementById('exercise').value),
+                sets: setsVal !== '' ? parseInt(setsVal) : null,
+                reps: repsVal !== '' ? parseInt(repsVal) : null,
                 weight: parseFloat(document.getElementById('weight').value),
-                performanceHighlight: document.getElementById('trainingHighlight').checked,
-                notes: document.getElementById('trainingNotes').value,
-                timestamp: new Date().toISOString()
+                performance_highlight: document.getElementById('trainingHighlight').checked,
+                notes: toNull(document.getElementById('trainingNotes').value),
+                created_at: new Date().toISOString()
             };
 
-            if (!trainingData.date || !trainingData.exercise || isNaN(trainingData.weight)) {
+            if (!row.date || !row.exercise || isNaN(row.weight)) {
                 showStatus('Please fill in date, exercise, and weight', 'error');
                 return;
             }
 
-            if (await submitToGitHub('training.json', trainingData)) {
+            if (await insertRow('training', row, 'Training')) {
                 clearTrainingForm();
             }
         }
 
-        async function submitToGitHub(filename, data) {
-            const repo = localStorage.getItem('githubRepo');
-            const token = localStorage.getItem('githubToken');
-            const typeLabels = { 'sessions.json': 'Session', 'climbs.json': 'Climb', 'training.json': 'Training' };
-            const entryLabel = typeLabels[filename] || 'Entry';
+        async function insertRow(table, row, entryLabel) {
+            const { error } = await sb.from(table).insert(row);
 
-            if (!repo || !token) {
-                showStatus('Setup not complete', 'error');
-                return false;
-            }
-
-            try {
-                let existingContent = [];
-                let sha = null;
-
-                try {
-                    const getResponse = await fetch(`https://api.github.com/repos/${repo}/contents/data/${filename}`, {
-                        headers: { 'Authorization': `token ${token}` }
-                    });
-
-                    if (getResponse.ok) {
-                        const existingFile = await getResponse.json();
-                        existingContent = JSON.parse(base64ToUtf8(existingFile.content));
-                        sha = existingFile.sha;
-                    }
-                } catch (error) {
-                    console.log('Creating new file');
-                }
-
-                existingContent.push(data);
-
-                // Convert to JSON string with proper encoding
-                const jsonString = JSON.stringify(existingContent, null, 2);
-                
-                // Use TextEncoder for proper UTF-8 encoding before base64
-                const utf8Bytes = new TextEncoder().encode(jsonString);
-                const base64Content = uint8ArrayToBase64(utf8Bytes);
-
-                const response = await fetch(`https://api.github.com/repos/${repo}/contents/data/${filename}`, {
-                    method: 'PUT',
-                    headers: {
-                        'Authorization': `token ${token}`,
-                        'Content-Type': 'application/json',
-                    },
-                    body: JSON.stringify({
-                        message: `Add ${filename.replace('.json', '')} entry`,
-                        content: base64Content,
-                        ...(sha && { sha })
-                    })
-                });
-
-                if (response.ok) {
-                    showStatus(`${entryLabel} Logged! 🎉`, 'success');
-                    return true;
-                } else if (response.status === 409) {
-                    // Conflict: SHA is stale — re-fetch and retry once
-                    const retryGet = await fetch(`https://api.github.com/repos/${repo}/contents/data/${filename}`, {
-                        headers: { 'Authorization': `token ${token}` }
-                    });
-                    if (!retryGet.ok) {
-                        showStatus('GitHub conflict error: could not re-fetch file', 'error');
-                        return false;
-                    }
-                    const retryFile = await retryGet.json();
-                    const retryBase64 = uint8ArrayToBase64(new TextEncoder().encode(
-                        JSON.stringify(JSON.parse(base64ToUtf8(retryFile.content)).concat([data]), null, 2)
-                    ));
-                    const retryResponse = await fetch(`https://api.github.com/repos/${repo}/contents/data/${filename}`, {
-                        method: 'PUT',
-                        headers: {
-                            'Authorization': `token ${token}`,
-                            'Content-Type': 'application/json',
-                        },
-                        body: JSON.stringify({
-                            message: `Add ${filename.replace('.json', '')} entry`,
-                            content: retryBase64,
-                            sha: retryFile.sha
-                        })
-                    });
-                    if (retryResponse.ok) {
-                        showStatus(`${entryLabel} Logged! 🎉`, 'success');
-                        return true;
-                    } else {
-                        const retryError = await retryResponse.json();
-                        showStatus(`GitHub error: ${retryError.message}`, 'error');
-                        return false;
-                    }
-                } else if (response.status === 401 || response.status === 404) {
-                    showGitHubSetup('GitHub token invalid or missing write access. Please update your token.');
-                    return false;
+            if (error) {
+                if (isAuthError(error)) {
+                    showAuthSetup('Your session has expired. Please sign in again.');
                 } else {
-                    const errorData = await response.json();
-                    showStatus(`GitHub error: ${errorData.message}`, 'error');
-                    return false;
+                    showStatus(`Save failed: ${error.message}`, 'error');
                 }
-            } catch (error) {
-                showStatus(`Network error: ${error.message}`, 'error');
                 return false;
             }
+
+            showStatus(`${entryLabel} Logged! 🎉`, 'success');
+            return true;
         }
 
         async function loadEditData() {
@@ -1049,37 +938,25 @@
                 return;
             }
 
-            const repo = localStorage.getItem('githubRepo');
-            const token = localStorage.getItem('githubToken');
+            const config = {
+                sessions: { pk: 'session_id', map: rowToSession },
+                climbs: { pk: 'climb_id', map: rowToClimb },
+                training: { pk: 'training_id', map: rowToTraining }
+            }[type];
 
-            try {
-                const filename = type + '.json';
-                const response = await fetch(`https://api.github.com/repos/${repo}/contents/data/${filename}`, {
-                    headers: { 'Authorization': `token ${token}` }
-                });
+            // Sort by primary key descending (IDs are timestamp-based: S/C/T + epoch ms)
+            const { data, error } = await sb.from(type)
+                .select('*')
+                .order(config.pk, { ascending: false })
+                .limit(10);
 
-                if (response.ok) {
-                    const data = await response.json();
-                    currentEditData = JSON.parse(base64ToUtf8(data.content));
-
-                    // Sort by ID descending (IDs are timestamp-based: S/C/T + epoch ms)
-                    const idField = type === 'sessions' ? 'sessionId' : type === 'climbs' ? 'climbId' : 'trainingId';
-                    const recentItems = currentEditData
-                        .slice()
-                        .sort((a, b) => {
-                            const aId = (a[idField] || '').slice(1);
-                            const bId = (b[idField] || '').slice(1);
-                            return bId.localeCompare(aId, undefined, { numeric: true });
-                        })
-                        .slice(0, 10);
-
-                    displayEditItems(type, recentItems);
-                } else {
-                    showStatus('No data found', 'error');
-                }
-            } catch (error) {
+            if (error) {
                 showStatus('Error loading data', 'error');
+                return;
             }
+
+            currentEditData = data.map(config.map);
+            displayEditItems(type, currentEditData);
         }
 
         function displayEditItems(type, items) {
@@ -1154,7 +1031,7 @@
                         <label>Location</label>
                         <select id="editSessionLocation">
                             <option value="">Choose location...</option>
-                            ${LOCATIONS.map(loc => `<option value="${loc}" ${item.location === loc ? 'selected' : ''}>${loc}</option>`).join('\n                            ')}
+                            ${availableLocations.map(loc => `<option value="${loc}" ${item.location === loc ? 'selected' : ''}>${loc}</option>`).join('\n                            ')}
                         </select>
                     </div>
                     <div class="form-group">
@@ -1194,13 +1071,6 @@
                     <div class="form-group">
                         <label>Grade</label>
                         <input type="text" id="editClimbGrade" value="${item.grade || ''}" />
-                    </div>
-                    <div class="form-group">
-                        <label>Grade System</label>
-                        <select id="editGradeSystem">
-                            <option value="V" ${item.gradeSystem === 'V' ? 'selected' : ''}>V-Scale</option>
-                            <option value="B" ${item.gradeSystem === 'B' ? 'selected' : ''}>B-Scale</option>
-                        </select>
                     </div>
                     <div class="form-group">
                         <label>Send Status</label>
@@ -1302,52 +1172,66 @@
             }
 
             const type = document.getElementById('editType').value;
+            let pk, id, payload;
 
             if (type === 'sessions') {
-                selectedEditItem.date = document.getElementById('editSessionDate').value;
-                selectedEditItem.location = document.getElementById('editSessionLocation').value;
-                selectedEditItem.rating = editRating;
-                selectedEditItem.notes = document.getElementById('editSessionNotes').value;
-                selectedEditItem.videos = document.getElementById('editSessionVideos').value;
+                pk = 'session_id';
+                id = selectedEditItem.sessionId;
+                payload = {
+                    date: document.getElementById('editSessionDate').value,
+                    location: toNull(document.getElementById('editSessionLocation').value),
+                    rating: editRating,
+                    notes: toNull(document.getElementById('editSessionNotes').value),
+                    media: toNull(document.getElementById('editSessionVideos').value)
+                };
             } else if (type === 'climbs') {
-                selectedEditItem.sessionId = document.getElementById('editClimbSession').value;
-                selectedEditItem.boulderName = document.getElementById('editBoulderName').value;
-                selectedEditItem.grade = document.getElementById('editClimbGrade').value;
-                selectedEditItem.gradeSystem = document.getElementById('editGradeSystem').value;
-                selectedEditItem.sendStatus = document.getElementById('editSendStatus').value;
-                selectedEditItem.attempts = parseInt(document.getElementById('editAttempts').value);
-                selectedEditItem.isProject = document.getElementById('editIsProject').checked;
-                selectedEditItem.performanceHighlight = document.getElementById('editClimbHighlight').checked;
-                selectedEditItem.notes = document.getElementById('editClimbNotes').value;
-                selectedEditItem.videos = document.getElementById('editClimbVideos').value;
+                pk = 'climb_id';
+                id = selectedEditItem.climbId;
+                payload = {
+                    session_id: document.getElementById('editClimbSession').value,
+                    boulder_name: toNull(document.getElementById('editBoulderName').value),
+                    grade: toNull(document.getElementById('editClimbGrade').value),
+                    send_status: toNull(document.getElementById('editSendStatus').value),
+                    attempts: parseInt(document.getElementById('editAttempts').value),
+                    is_project: document.getElementById('editIsProject').checked,
+                    performance_highlight: document.getElementById('editClimbHighlight').checked,
+                    notes: toNull(document.getElementById('editClimbNotes').value),
+                    media: toNull(document.getElementById('editClimbVideos').value)
+                };
             } else if (type === 'training') {
-                selectedEditItem.date = document.getElementById('editTrainingDate').value;
-                selectedEditItem.exercise = document.getElementById('editExercise').value;
+                pk = 'training_id';
+                id = selectedEditItem.trainingId;
                 const editSetsVal = document.getElementById('editTrainingSets').value.trim();
                 const editRepsVal = document.getElementById('editTrainingReps').value.trim();
-                if (editSetsVal !== '') {
-                    selectedEditItem.sets = parseInt(editSetsVal);
-                } else {
-                    delete selectedEditItem.sets;
-                }
-                if (editRepsVal !== '') {
-                    selectedEditItem.reps = parseInt(editRepsVal);
-                } else {
-                    delete selectedEditItem.reps;
-                }
-                selectedEditItem.weight = parseFloat(document.getElementById('editWeight').value);
-                selectedEditItem.performanceHighlight = document.getElementById('editTrainingHighlight').checked;
-                selectedEditItem.notes = document.getElementById('editTrainingNotes').value;
+                payload = {
+                    date: document.getElementById('editTrainingDate').value,
+                    exercise: toNull(document.getElementById('editExercise').value),
+                    sets: editSetsVal !== '' ? parseInt(editSetsVal) : null,
+                    reps: editRepsVal !== '' ? parseInt(editRepsVal) : null,
+                    weight: parseFloat(document.getElementById('editWeight').value),
+                    performance_highlight: document.getElementById('editTrainingHighlight').checked,
+                    notes: toNull(document.getElementById('editTrainingNotes').value)
+                };
             }
 
-            selectedEditItem.lastUpdated = new Date().toISOString();
+            payload.updated_at = new Date().toISOString();
 
-            if (await updateGitHubFile(type + '.json', currentEditData)) {
-                showStatus('Entry updated successfully! 🎉', 'success');
-                clearEditForm();
-                loadEditData();
-                if (type === 'climbs') loadBoulderNames();
+            const { error } = await sb.from(type).update(payload).eq(pk, id);
+
+            if (error) {
+                if (isAuthError(error)) {
+                    showAuthSetup('Your session has expired. Please sign in again.');
+                } else {
+                    showStatus(`Update failed: ${error.message}`, 'error');
+                }
+                return;
             }
+
+            showStatus('Entry updated successfully! 🎉', 'success');
+            clearEditForm();
+            loadEditData();
+            if (type === 'climbs') loadBoulderNames();
+            if (type === 'sessions') loadSessions();
         }
 
         function clearEditForm() {
@@ -1360,56 +1244,6 @@
             document.querySelectorAll('.edit-item').forEach(item => {
                 item.classList.remove('selected');
             });
-        }
-
-        async function updateGitHubFile(filename, data) {
-            const repo = localStorage.getItem('githubRepo');
-            const token = localStorage.getItem('githubToken');
-
-            try {
-                const getResponse = await fetch(`https://api.github.com/repos/${repo}/contents/data/${filename}`, {
-                    headers: { 'Authorization': `token ${token}` }
-                });
-
-                if (!getResponse.ok) {
-                    if (getResponse.status === 401) {
-                        showGitHubSetup('GitHub token expired or invalid. Please update your token.');
-                    } else {
-                        showStatus('Error fetching file for update', 'error');
-                    }
-                    return false;
-                }
-                const existingFile = await getResponse.json();
-
-                // Convert to JSON string with proper encoding
-                const jsonString = JSON.stringify(data, null, 2);
-                
-                // Use TextEncoder for proper UTF-8 encoding before base64
-                const utf8Bytes = new TextEncoder().encode(jsonString);
-                const base64Content = uint8ArrayToBase64(utf8Bytes);
-
-                const response = await fetch(`https://api.github.com/repos/${repo}/contents/data/${filename}`, {
-                    method: 'PUT',
-                    headers: {
-                        'Authorization': `token ${token}`,
-                        'Content-Type': 'application/json',
-                    },
-                    body: JSON.stringify({
-                        message: `Update ${filename.replace('.json', '')} entry`,
-                        content: base64Content,
-                        sha: existingFile.sha
-                    })
-                });
-
-                if (response.status === 401 || response.status === 404) {
-                    showGitHubSetup('GitHub token invalid or missing write access. Please update your token.');
-                    return false;
-                }
-                return response.ok;
-            } catch (error) {
-                showStatus('Error updating entry', 'error');
-                return false;
-            }
         }
 
         function showDeleteConfirmation() {
@@ -1441,23 +1275,29 @@
         async function confirmDelete() {
             const type = document.getElementById('editType').value;
 
-            let idField;
-            if (type === 'sessions') idField = 'sessionId';
-            else if (type === 'climbs') idField = 'climbId';
-            else if (type === 'training') idField = 'trainingId';
+            let pk, id;
+            if (type === 'sessions') { pk = 'session_id'; id = selectedEditItem.sessionId; }
+            else if (type === 'climbs') { pk = 'climb_id'; id = selectedEditItem.climbId; }
+            else if (type === 'training') { pk = 'training_id'; id = selectedEditItem.trainingId; }
 
-            const deleteIndex = currentEditData.findIndex(item => item[idField] === selectedEditItem[idField]);
-            if (deleteIndex !== -1) {
-                currentEditData.splice(deleteIndex, 1);
-            }
+            const { error } = await sb.from(type).delete().eq(pk, id);
 
-            if (await updateGitHubFile(type + '.json', currentEditData)) {
-                showStatus('Entry deleted successfully', 'success');
+            if (error) {
                 hideDeleteConfirmation();
-                clearEditForm();
-                loadEditData();
-                if (type === 'climbs') loadBoulderNames();
+                if (isAuthError(error)) {
+                    showAuthSetup('Your session has expired. Please sign in again.');
+                } else {
+                    showStatus(`Delete failed: ${error.message}`, 'error');
+                }
+                return;
             }
+
+            showStatus('Entry deleted successfully', 'success');
+            hideDeleteConfirmation();
+            clearEditForm();
+            loadEditData();
+            if (type === 'climbs') loadBoulderNames();
+            if (type === 'sessions') loadSessions();
         }
 
         function clearSessionForm() {
