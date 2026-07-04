@@ -422,7 +422,7 @@
                         <label>Media</label>
                         <input type="url" id="sessionVideos" placeholder="Paste video links here" />
                     </div>
-                    <button class="button" onclick="submitSession()">Log Session</button>
+                    <button class="button" onclick="guardedWrite(this, submitSession)">Log Session</button>
                 </div>
 
                 <!-- Climb Form -->
@@ -475,7 +475,7 @@
                         <label>Media</label>
                         <input type="url" id="climbVideos" placeholder="Paste video links here" />
                     </div>
-                    <button class="button" onclick="submitClimb()">Log Climb</button>
+                    <button class="button" onclick="guardedWrite(this, submitClimb)">Log Climb</button>
                 </div>
 
                 <!-- Training Form -->
@@ -512,7 +512,7 @@
                         <label>Notes</label>
                         <textarea id="trainingNotes" rows="8" placeholder="Form notes, how it felt..."></textarea>
                     </div>
-                    <button class="button" onclick="submitTraining()">Log Training</button>
+                    <button class="button" onclick="guardedWrite(this, submitTraining)">Log Training</button>
                 </div>
 
                 <!-- Edit Form -->
@@ -531,7 +531,7 @@
                     </div>
                     <div id="editFormContainer" style="display: none;">
                         <div id="editFields"></div>
-                        <button class="button" onclick="updateEntry()">Update Entry</button>
+                        <button class="button" onclick="guardedWrite(this, updateEntry)">Update Entry</button>
                         <button class="button delete" id="deleteButton" onclick="showDeleteConfirmation()" style="display: none;">Delete Entry</button>
                     </div>
                 </div>
@@ -548,7 +548,7 @@
             <p id="deleteConfirmText">Are you sure you want to delete this entry? This cannot be undone.</p>
             <div class="modal-buttons">
                 <button class="modal-button cancel" onclick="hideDeleteConfirmation()">Cancel</button>
-                <button class="modal-button confirm" onclick="confirmDelete()">Delete</button>
+                <button class="modal-button confirm" onclick="guardedWrite(this, confirmDelete)">Delete</button>
             </div>
         </div>
     </div>
@@ -570,12 +570,16 @@
         let availableExercises = [];
         let availableLocations = [];
 
-        // Helper function to properly escape HTML for safe display
+        // Helper function to properly escape HTML for safe display.
+        // Escapes quotes too, so it is safe in both text and attribute contexts.
         function escapeHtml(text) {
-            if (!text) return '';
-            const div = document.createElement('div');
-            div.textContent = text;
-            return div.innerHTML;
+            if (text === null || text === undefined || text === '') return '';
+            return String(text)
+                .replace(/&/g, '&amp;')
+                .replace(/</g, '&lt;')
+                .replace(/>/g, '&gt;')
+                .replace(/"/g, '&quot;')
+                .replace(/'/g, '&#39;');
         }
 
         // Helper function to safely set input value
@@ -619,10 +623,39 @@
             };
         }
 
+        // Per-type metadata: DB primary key column, app-side id field, row mapper
+        const TYPE_META = {
+            sessions: { pk: 'session_id', idField: 'sessionId', map: rowToSession },
+            climbs: { pk: 'climb_id', idField: 'climbId', map: rowToClimb },
+            training: { pk: 'training_id', idField: 'trainingId', map: rowToTraining }
+        };
+
         function isAuthError(error) {
             const msg = ((error && error.message) || '').toLowerCase();
             return (error && error.code === '42501') || msg.includes('jwt') ||
                 msg.includes('not authenticated') || msg.includes('row-level security');
+        }
+
+        // Prevent duplicate writes from double-taps: disable the triggering button
+        // and show "Saving..." while a write is in flight (issue #36)
+        let writeInProgress = false;
+        async function guardedWrite(button, handler) {
+            if (writeInProgress) return;
+            writeInProgress = true;
+            const originalText = button ? button.textContent : '';
+            if (button) {
+                button.disabled = true;
+                button.textContent = 'Saving...';
+            }
+            try {
+                await handler();
+            } finally {
+                writeInProgress = false;
+                if (button) {
+                    button.disabled = false;
+                    button.textContent = originalText;
+                }
+            }
         }
 
         document.addEventListener('DOMContentLoaded', initializeApp);
@@ -770,9 +803,11 @@
         }
 
         async function loadBoulderNames() {
+            // Only the 10 most recent unique names are shown, so a recent slice is plenty
             const { data, error } = await sb.from('climbs')
                 .select('boulder_name')
-                .order('created_at', { ascending: false });
+                .order('created_at', { ascending: false })
+                .limit(100);
 
             if (error) {
                 console.log('Failed to load climbs:', error.message);
@@ -938,11 +973,7 @@
                 return;
             }
 
-            const config = {
-                sessions: { pk: 'session_id', map: rowToSession },
-                climbs: { pk: 'climb_id', map: rowToClimb },
-                training: { pk: 'training_id', map: rowToTraining }
-            }[type];
+            const config = TYPE_META[type];
 
             // Sort by primary key descending (IDs are timestamp-based: S/C/T + epoch ms)
             const { data, error } = await sb.from(type)
@@ -962,7 +993,6 @@
         function displayEditItems(type, items) {
             const container = document.getElementById('itemsList');
             const recentItems = document.getElementById('recentItems');
-            const idField = type === 'sessions' ? 'sessionId' : type === 'climbs' ? 'climbId' : 'trainingId';
 
             if (items.length === 0) {
                 container.innerHTML = '<p style="color: #6b7280;">No recent entries found</p>';
@@ -973,19 +1003,19 @@
                     let itemId = '';
 
                     if (type === 'sessions') {
-                        title = `${item.date} - ${item.location}`;
-                        subtitle = `Rating: ${item.rating || 'Not set'}/10`;
+                        title = `${escapeHtml(item.date)} - ${escapeHtml(item.location)}`;
+                        subtitle = `Rating: ${escapeHtml(item.rating || 'Not set')}/10`;
                         itemId = item.sessionId;
                     } else if (type === 'climbs') {
-                        title = `${escapeHtml(item.boulderName)} (${item.grade})`;
-                        subtitle = `${item.sendStatus} • ${item.isProject ? 'Project' : 'Regular'}`;
+                        title = `${escapeHtml(item.boulderName)} (${escapeHtml(item.grade)})`;
+                        subtitle = `${escapeHtml(item.sendStatus)} • ${item.isProject ? 'Project' : 'Regular'}`;
                         itemId = item.climbId;
                     } else if (type === 'training') {
                         const setsReps = (item.sets != null || item.reps != null)
                             ? ` • ${item.sets != null ? item.sets + ' sets' : ''}${item.sets != null && item.reps != null ? ' x ' : ''}${item.reps != null ? item.reps + ' reps' : ''}`
                             : '';
-                        title = `${escapeHtml(item.exercise)} - ${item.weight}lbs${setsReps}`;
-                        subtitle = `${item.date}`;
+                        title = `${escapeHtml(item.exercise)} - ${escapeHtml(item.weight)}lbs${setsReps}`;
+                        subtitle = `${escapeHtml(item.date)}`;
                         itemId = item.trainingId;
                     }
 
@@ -1002,11 +1032,7 @@
         }
 
         function selectEditItem(itemId, type, event) {
-            let idField;
-            if (type === 'sessions') idField = 'sessionId';
-            else if (type === 'climbs') idField = 'climbId';
-            else if (type === 'training') idField = 'trainingId';
-
+            const idField = TYPE_META[type].idField;
             selectedEditItem = currentEditData.find(item => item[idField] === itemId) || null;
 
             document.querySelectorAll('.edit-item').forEach(item => {
@@ -1025,13 +1051,13 @@
                 fieldsHTML = `
                     <div class="form-group">
                         <label>Date</label>
-                        <input type="date" id="editSessionDate" value="${item.date || ''}" />
+                        <input type="date" id="editSessionDate" value="${escapeHtml(item.date)}" />
                     </div>
                     <div class="form-group">
                         <label>Location</label>
                         <select id="editSessionLocation">
                             <option value="">Choose location...</option>
-                            ${availableLocations.map(loc => `<option value="${loc}" ${item.location === loc ? 'selected' : ''}>${loc}</option>`).join('\n                            ')}
+                            ${availableLocations.map(loc => `<option value="${escapeHtml(loc)}" ${item.location === loc ? 'selected' : ''}>${escapeHtml(loc)}</option>`).join('\n                            ')}
                         </select>
                     </div>
                     <div class="form-group">
@@ -1045,21 +1071,18 @@
                     </div>
                     <div class="form-group">
                         <label>Media</label>
-                        <input type="url" id="editSessionVideos" value="${item.videos || ''}" />
+                        <input type="url" id="editSessionVideos" value="${escapeHtml(item.videos)}" />
                     </div>
                 `;
                 editRating = item.rating || 5;
             } else if (type === 'climbs') {
-                const session = availableSessions.find(s => s.sessionId === item.sessionId);
-                const sessionDisplay = session ? `${session.date} - ${session.location}` : item.sessionId;
-                
                 fieldsHTML = `
                     <div class="form-group">
                         <label>Session</label>
                         <select id="editClimbSession">
                             ${availableSessions.map(s => `
-                                <option value="${s.sessionId}" ${s.sessionId === item.sessionId ? 'selected' : ''}>
-                                    ${s.date} - ${s.location}
+                                <option value="${escapeHtml(s.sessionId)}" ${s.sessionId === item.sessionId ? 'selected' : ''}>
+                                    ${escapeHtml(s.date)} - ${escapeHtml(s.location)}
                                 </option>
                             `).join('')}
                         </select>
@@ -1070,7 +1093,7 @@
                     </div>
                     <div class="form-group">
                         <label>Grade</label>
-                        <input type="text" id="editClimbGrade" value="${item.grade || ''}" />
+                        <input type="text" id="editClimbGrade" value="${escapeHtml(item.grade)}" />
                     </div>
                     <div class="form-group">
                         <label>Send Status</label>
@@ -1083,7 +1106,7 @@
                     </div>
                     <div class="form-group">
                         <label>Attempts This Session</label>
-                        <input type="number" id="editAttempts" min="1" value="${item.attempts || 1}" />
+                        <input type="number" id="editAttempts" min="1" value="${escapeHtml(item.attempts || 1)}" />
                     </div>
                     <div class="form-group">
                         <div class="checkbox-group">
@@ -1103,34 +1126,34 @@
                     </div>
                     <div class="form-group">
                         <label>Media</label>
-                        <input type="url" id="editClimbVideos" value="${item.videos || ''}" />
+                        <input type="url" id="editClimbVideos" value="${escapeHtml(item.videos)}" />
                     </div>
                 `;
             } else if (type === 'training') {
                 fieldsHTML = `
                     <div class="form-group">
                         <label>Date</label>
-                        <input type="date" id="editTrainingDate" value="${item.date || ''}" />
+                        <input type="date" id="editTrainingDate" value="${escapeHtml(item.date)}" />
                     </div>
                         <div class="form-group">
                             <label>Exercise</label>
                             <select id="editExercise">
                                 ${availableExercises.map(e => `
-                                    <option value="${e}" ${item.exercise === e ? 'selected' : ''}>${escapeHtml(e)}</option>
+                                    <option value="${escapeHtml(e)}" ${item.exercise === e ? 'selected' : ''}>${escapeHtml(e)}</option>
                                 `).join('')}
                             </select>
                         </div>
                     <div class="form-group">
                         <label>Sets <span style="font-weight:400;color:#6b7280;">(optional)</span></label>
-                        <input type="number" id="editTrainingSets" min="1" placeholder="e.g. 3" value="${item.sets != null ? item.sets : ''}" />
+                        <input type="number" id="editTrainingSets" min="1" placeholder="e.g. 3" value="${escapeHtml(item.sets != null ? item.sets : '')}" />
                     </div>
                     <div class="form-group">
                         <label>Reps <span style="font-weight:400;color:#6b7280;">(optional)</span></label>
-                        <input type="number" id="editTrainingReps" min="1" placeholder="e.g. 8" value="${item.reps != null ? item.reps : ''}" />
+                        <input type="number" id="editTrainingReps" min="1" placeholder="e.g. 8" value="${escapeHtml(item.reps != null ? item.reps : '')}" />
                     </div>
                     <div class="form-group">
                         <label>Working Weight (lbs)</label>
-                        <input type="number" id="editWeight" min="0" step="0.5" value="${item.weight || ''}" />
+                        <input type="number" id="editWeight" min="0" step="0.5" value="${escapeHtml(item.weight)}" />
                     </div>
                     <div class="form-group">
                         <div class="checkbox-group">
@@ -1172,11 +1195,11 @@
             }
 
             const type = document.getElementById('editType').value;
-            let pk, id, payload;
+            const pk = TYPE_META[type].pk;
+            const id = selectedEditItem[TYPE_META[type].idField];
+            let payload;
 
             if (type === 'sessions') {
-                pk = 'session_id';
-                id = selectedEditItem.sessionId;
                 payload = {
                     date: document.getElementById('editSessionDate').value,
                     location: toNull(document.getElementById('editSessionLocation').value),
@@ -1185,8 +1208,6 @@
                     media: toNull(document.getElementById('editSessionVideos').value)
                 };
             } else if (type === 'climbs') {
-                pk = 'climb_id';
-                id = selectedEditItem.climbId;
                 payload = {
                     session_id: document.getElementById('editClimbSession').value,
                     boulder_name: toNull(document.getElementById('editBoulderName').value),
@@ -1199,8 +1220,6 @@
                     media: toNull(document.getElementById('editClimbVideos').value)
                 };
             } else if (type === 'training') {
-                pk = 'training_id';
-                id = selectedEditItem.trainingId;
                 const editSetsVal = document.getElementById('editTrainingSets').value.trim();
                 const editRepsVal = document.getElementById('editTrainingReps').value.trim();
                 payload = {
@@ -1274,11 +1293,8 @@
 
         async function confirmDelete() {
             const type = document.getElementById('editType').value;
-
-            let pk, id;
-            if (type === 'sessions') { pk = 'session_id'; id = selectedEditItem.sessionId; }
-            else if (type === 'climbs') { pk = 'climb_id'; id = selectedEditItem.climbId; }
-            else if (type === 'training') { pk = 'training_id'; id = selectedEditItem.trainingId; }
+            const pk = TYPE_META[type].pk;
+            const id = selectedEditItem[TYPE_META[type].idField];
 
             const { error } = await sb.from(type).delete().eq(pk, id);
 
