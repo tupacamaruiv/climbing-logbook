@@ -108,24 +108,23 @@ The anon (public) key in the page source can therefore only be used to attempt s
 
 ## Data Flow
 
-All CRUD goes through the supabase-js client:
+All CRUD goes through the supabase-js client. Every write (insert/update/delete) is funneled through a shared `performWrite(query, action, successMessage)` helper, which awaits the query, routes failures to `reportWriteError` (auth-expiry vs. FK-violation vs. generic message), and shows the success toast — returning `true`/`false` so callers can bail early on failure. Timestamps (`created_at`/`updated_at`) are owned by the database (defaults + trigger), not the client.
 
 ```javascript
 const sb = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
 // Insert a session
-await sb.from('sessions').insert({
+await performWrite(sb.from('sessions').insert({
   session_id: 'S' + Date.now(),
-  date, location, rating, notes, media,
-  created_at: new Date().toISOString()
-});
+  date, location, rating, notes, media
+}), 'Save', 'Session Logged! 🎉');
 
 // Load dropdown options
 await sb.from('locations').select('name').eq('active', true).order('name');
 
 // Edit / delete
-await sb.from('climbs').update({ notes, media, updated_at: ... }).eq('climb_id', id);
-await sb.from('training').delete().eq('training_id', id);
+await performWrite(sb.from('climbs').update({ notes, media }).eq('climb_id', id), 'Update', ...);
+await performWrite(sb.from('training').delete().eq('training_id', id), 'Delete', ...);
 ```
 
 Dropdowns for location and exercise are loaded from the `locations` and `exercises` tables (`active = true`, ordered by name), so adding a new gym or exercise is a database row, not a code change.

@@ -651,6 +651,17 @@
             }
         }
 
+        // Await a Supabase write, report failure, announce success. Returns true on success.
+        async function performWrite(query, action, successMessage) {
+            const { error } = await query;
+            if (error) {
+                reportWriteError(error, action);
+                return false;
+            }
+            showStatus(successMessage, 'success');
+            return true;
+        }
+
         // Prevent duplicate writes from double-taps: disable the triggering button
         // and show "Saving..." while a write is in flight (issue #36)
         let writeInProgress = false;
@@ -928,7 +939,7 @@
                 return;
             }
 
-            if (await insertRow('sessions', row, 'Session')) {
+            if (await performWrite(sb.from('sessions').insert(row), 'Save', 'Session Logged! 🎉')) {
                 localStorage.setItem('lastLocation', row.location);
                 clearSessionForm();
                 loadSessions();
@@ -966,7 +977,7 @@
                 return;
             }
 
-            if (await insertRow('climbs', row, 'Climb')) {
+            if (await performWrite(sb.from('climbs').insert(row), 'Save', 'Climb Logged! 🎉')) {
                 clearClimbForm();
                 loadBoulderNames();
             }
@@ -998,21 +1009,9 @@
                 return;
             }
 
-            if (await insertRow('training', row, 'Training')) {
+            if (await performWrite(sb.from('training').insert(row), 'Save', 'Training Logged! 🎉')) {
                 clearTrainingForm();
             }
-        }
-
-        async function insertRow(table, row, entryLabel) {
-            const { error } = await sb.from(table).insert(row);
-
-            if (error) {
-                reportWriteError(error, 'Save');
-                return false;
-            }
-
-            showStatus(`${entryLabel} Logged! 🎉`, 'success');
-            return true;
         }
 
         async function loadEditData() {
@@ -1305,14 +1304,8 @@
                 };
             }
 
-            const { error } = await sb.from(type).update(payload).eq(pk, id);
+            if (!(await performWrite(sb.from(type).update(payload).eq(pk, id), 'Update', 'Entry updated successfully! 🎉'))) return;
 
-            if (error) {
-                reportWriteError(error, 'Update');
-                return;
-            }
-
-            showStatus('Entry updated successfully! 🎉', 'success');
             clearEditForm();
             loadEditData();
             if (type === 'climbs') loadBoulderNames();
@@ -1363,16 +1356,10 @@
             const pk = TYPE_META[type].pk;
             const id = selectedEditItem[TYPE_META[type].idField];
 
-            const { error } = await sb.from(type).delete().eq(pk, id);
-
-            if (error) {
-                hideDeleteConfirmation();
-                reportWriteError(error, 'Delete');
-                return;
-            }
-
-            showStatus('Entry deleted successfully', 'success');
+            const ok = await performWrite(sb.from(type).delete().eq(pk, id), 'Delete', 'Entry deleted successfully');
             hideDeleteConfirmation();
+            if (!ok) return;
+
             clearEditForm();
             loadEditData();
             if (type === 'climbs') loadBoulderNames();

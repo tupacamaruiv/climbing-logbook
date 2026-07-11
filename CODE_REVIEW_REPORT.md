@@ -97,7 +97,7 @@ The single-file, no-build approach remains the right call at this scale — no f
 - ~~Redundant first clause in the 7-day session filter (`s.date >= today` is a strict subset of the 7-day condition).~~ ✅ Already resolved by `251179b` (single string-compare condition).
 - ~~`rowToSession` maps 8 columns while `loadSessions` selects 3 — misleading to a future reader.~~ ✅ Done 2026-07-11 — dead `timestamp`/`lastUpdated` fields removed from all three mappers (client timestamps were dropped in #46); a comment above `rowToSession` now explains the narrow `loadSessions` select vs. the Edit tab's `select('*')`.
 - ~~`currentRating`/`editRating` globals shadow the sliders' DOM values; reading the input at submit time removes a stale-state bug class.~~ ✅ Done 2026-07-11 — both globals removed; create path reads the slider at submit, edit path uses a `dataset.touched` flag on the (per-render) slider element to preserve the #44 null-until-touched semantics.
-- `insertRow` centralizes the auth-error/status pattern but `updateEntry` and `confirmDelete` re-inline the identical block — one shared helper covers all three.
+- ~~`insertRow` centralizes the auth-error/status pattern but `updateEntry` and `confirmDelete` re-inline the identical block — one shared helper covers all three.~~ ✅ Done 2026-07-11 — `performWrite(query, action, successMessage)` now wraps every insert/update/delete (error routing stays in `reportWriteError`, extracted earlier by `251179b`); `insertRow` deleted.
 - Stray `data/nul` file (Windows reserved device name, reappeared 2026-01-27) — see #38.
 
 ## Suggested Order of Attack
