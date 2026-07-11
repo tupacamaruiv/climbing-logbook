@@ -92,10 +92,10 @@ The single-file, no-build approach remains the right call at this scale — no f
 
 ### Deletion-pass cleanups
 
-- Unused `.quick-buttons` / `.quick-button` CSS (~25 dead lines).
+- ~~Unused `.quick-buttons` / `.quick-button` CSS (~25 dead lines).~~ ✅ Done 2026-07-11 — deleted.
 - `localStorage.setItem('lastLocation', ...)` — written, never read. Delete it or implement last-location pre-select (arguably the better call for a gym app).
-- Redundant first clause in the 7-day session filter (`s.date >= today` is a strict subset of the 7-day condition).
-- `rowToSession` maps 8 columns while `loadSessions` selects 3 — misleading to a future reader.
+- ~~Redundant first clause in the 7-day session filter (`s.date >= today` is a strict subset of the 7-day condition).~~ ✅ Already resolved by `251179b` (single string-compare condition).
+- ~~`rowToSession` maps 8 columns while `loadSessions` selects 3 — misleading to a future reader.~~ ✅ Done 2026-07-11 — dead `timestamp`/`lastUpdated` fields removed from all three mappers (client timestamps were dropped in #46); a comment above `rowToSession` now explains the narrow `loadSessions` select vs. the Edit tab's `select('*')`.
 - `currentRating`/`editRating` globals shadow the sliders' DOM values; reading the input at submit time removes a stale-state bug class.
 - `insertRow` centralizes the auth-error/status pattern but `updateEntry` and `confirmDelete` re-inline the identical block — one shared helper covers all three.
 - Stray `data/nul` file (Windows reserved device name, reappeared 2026-01-27) — see #38.

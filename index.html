@@ -257,31 +257,6 @@
             color: #dc2626;
         }
         
-        .quick-buttons {
-            display: grid;
-            grid-template-columns: 1fr 1fr;
-            gap: 8px;
-            margin-bottom: 20px;
-        }
-        
-        .quick-button {
-            padding: 10px;
-            background: #f8fafc;
-            border: 1px solid #e2e8f0;
-            border-radius: 6px;
-            color: #475569;
-            font-family: inherit;
-            font-size: 0.8rem;
-            cursor: pointer;
-            transition: all 0.2s;
-            font-weight: 500;
-        }
-        
-        .quick-button:hover {
-            background: #f1f5f9;
-            border-color: #cbd5e1;
-        }
-        
         .help-text {
             font-size: 0.75rem;
             color: #6b7280;
@@ -627,11 +602,12 @@
         }
 
         // Map database rows (snake_case) to app objects (camelCase)
+        // Note: loadSessions selects only session_id/date/location, so rating/notes/videos
+        // are undefined there; the Edit tab selects * and uses them all.
         function rowToSession(r) {
             return {
                 sessionId: r.session_id, date: r.date, location: r.location,
-                rating: r.rating, notes: r.notes, videos: r.media,
-                timestamp: r.created_at, lastUpdated: r.updated_at
+                rating: r.rating, notes: r.notes, videos: r.media
             };
         }
 
@@ -640,8 +616,7 @@
                 climbId: r.climb_id, sessionId: r.session_id, boulderName: r.boulder_name,
                 grade: r.grade, sendStatus: r.send_status, isProject: r.is_project,
                 attempts: r.attempts, performanceHighlight: r.performance_highlight,
-                notes: r.notes, videos: r.media,
-                timestamp: r.created_at, lastUpdated: r.updated_at
+                notes: r.notes, videos: r.media
             };
         }
 
@@ -649,8 +624,7 @@
             return {
                 trainingId: r.training_id, date: r.date, exercise: r.exercise,
                 sets: r.sets, reps: r.reps, weight: r.weight,
-                performanceHighlight: r.performance_highlight, notes: r.notes,
-                timestamp: r.created_at, lastUpdated: r.updated_at
+                performanceHighlight: r.performance_highlight, notes: r.notes
             };
         }
 

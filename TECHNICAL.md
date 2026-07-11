@@ -14,6 +14,7 @@
 
 ### Hosting & Integrations
 - **GitHub Pages** — serves the static frontend; deploys automatically on push to `main`
+- **GitHub Actions syntax gate** (`.github/workflows/syntax-check.yml`) — on every push and pull request, extracts the inline `<script>` block from `index.html` with a line-number-preserving awk pass and runs `node --check` on it, so a JavaScript syntax error can't reach the deployed page and error line numbers map 1:1 to `index.html` lines
 - **Supabase MCP server** (`mcp.supabase.com`) — lets Claude query the database directly with SQL for reports, analysis, and charts
 
 ## System Architecture
