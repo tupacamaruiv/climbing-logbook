@@ -558,8 +558,6 @@
         // window.supabase is the supabase-js UMD global, so keep the client under a different name
         const sb = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
-        let currentRating = 5;
-        let editRating = null;
         let existingBoulderNames = [];
         let selectedEditItem = null;
         let selectedEditType = null;
@@ -686,7 +684,6 @@
 
             document.getElementById('sessionRating').addEventListener('input', function() {
                 document.getElementById('ratingValue').textContent = this.value;
-                currentRating = parseInt(this.value);
             });
 
             // Delegated click handler for boulder name chips (FIX #13)
@@ -921,7 +918,7 @@
                 session_id: 'S' + Date.now(),
                 date: document.getElementById('sessionDate').value || localToday(),
                 location: toNull(document.getElementById('sessionLocation').value),
-                rating: currentRating,
+                rating: parseInt(document.getElementById('sessionRating').value, 10),
                 notes: toNull(document.getElementById('sessionNotes').value),
                 media: toNull(document.getElementById('sessionVideos').value)
             };
@@ -1130,8 +1127,6 @@
                         <input type="url" id="editSessionVideos" value="${escapeHtml(item.videos)}" />
                     </div>
                 `;
-                // Null until the user moves the slider — don't silently write the visual default
-                editRating = item.rating ?? null;
             } else if (type === 'climbs') {
                 fieldsHTML = `
                     <div class="form-group">
@@ -1232,7 +1227,7 @@
                 safeSetValue('editSessionNotes', item.notes);
                 document.getElementById('editSessionRating').addEventListener('input', function() {
                     document.getElementById('editRatingValue').textContent = this.value;
-                    editRating = parseInt(this.value);
+                    this.dataset.touched = '1';
                 });
             } else if (type === 'climbs') {
                 safeSetValue('editBoulderName', item.boulderName);
@@ -1263,7 +1258,11 @@
                     notes: toNull(document.getElementById('editSessionNotes').value),
                     media: toNull(document.getElementById('editSessionVideos').value)
                 };
-                if (editRating !== null) payload.rating = editRating;
+                // Null until the user moves the slider — don't silently write the visual default
+                const ratingSlider = document.getElementById('editSessionRating');
+                if (selectedEditItem.rating != null || ratingSlider.dataset.touched) {
+                    payload.rating = parseInt(ratingSlider.value, 10);
+                }
             } else if (type === 'climbs') {
                 const attempts = posInt('editAttempts');
                 if (attempts === null) {
@@ -1387,7 +1386,6 @@
             document.getElementById('sessionVideos').value = '';
             document.getElementById('sessionRating').value = 5;
             document.getElementById('ratingValue').textContent = '5';
-            currentRating = 5;
         }
 
         function clearClimbForm() {
