@@ -52,6 +52,19 @@ SET date = date - 1
 WHERE date = (created_at AT TIME ZONE 'UTC')::date
   AND (created_at AT TIME ZONE 'America/New_York')::date = date - 1;
 
+-- ============================================================
+-- Data-quality cleanups (from the 2026-07-11 backup review)
+-- ============================================================
+
+-- Fix mojibake in one climb note: a multiply-encoded apostrophe in
+-- "haven't" on climb C1766513669571 ("Heartfelt but Unserious").
+UPDATE public.climbs
+SET notes = regexp_replace(notes, 'haven[^[:alpha:] ]+t tried', 'haven''t tried')
+WHERE climb_id = 'C1766513669571';
+
+-- Drop exercises.category: NULL on all rows, never read by the app.
+ALTER TABLE public.exercises DROP COLUMN IF EXISTS category;
+
 -- After applying this file, the client-set created_at/updated_at lines in index.html
 -- become redundant (DB defaults + trigger take over) and can be removed — they are
 -- harmless to keep, but removing them before applying this file would break inserts.

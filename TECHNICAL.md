@@ -44,7 +44,6 @@ CREATE TABLE locations (
 CREATE TABLE exercises (
   id        SERIAL PRIMARY KEY,
   name      TEXT UNIQUE NOT NULL,
-  category  TEXT,               -- 'finger', 'barbell', 'board', etc.
   active    BOOLEAN DEFAULT true
 );
 
