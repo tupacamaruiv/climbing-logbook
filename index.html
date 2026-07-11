@@ -92,7 +92,26 @@
         }
         
         .setup-button:hover { background: #f9fafb; }
-        
+
+        .signout-row {
+            display: flex;
+            justify-content: flex-end;
+            margin-bottom: 8px;
+        }
+
+        .signout-button {
+            padding: 4px 10px;
+            border: none;
+            background: transparent;
+            color: #64748b;
+            cursor: pointer;
+            font-family: inherit;
+            font-size: 0.8rem;
+            transition: color 0.2s;
+        }
+
+        .signout-button:hover { color: #1e293b; text-decoration: underline; }
+
         .tabs {
             display: flex;
             margin-bottom: 24px;
@@ -390,6 +409,9 @@
 
             <!-- Main App -->
             <div id="mainApp" style="display: none;">
+                <div class="signout-row">
+                    <button class="signout-button" onclick="signOut()">Sign Out</button>
+                </div>
                 <div class="tabs">
                     <button class="tab active" onclick="switchTab('session', event)">Session</button>
                     <button class="tab" onclick="switchTab('climb', event)">Climb</button>
@@ -696,7 +718,11 @@
             }
         }
 
+        let signingIn = false;
+
         async function signIn() {
+            if (signingIn) return;
+
             const email = document.getElementById('authEmail').value.trim();
             const password = document.getElementById('authPassword').value;
 
@@ -705,16 +731,27 @@
                 return;
             }
 
-            const { error } = await sb.auth.signInWithPassword({ email, password });
+            signingIn = true;
+            try {
+                const { error } = await sb.auth.signInWithPassword({ email, password });
 
-            if (error) {
-                showStatus(`Sign-in failed: ${error.message}`, 'error');
-                return;
+                if (error) {
+                    showStatus(`Sign-in failed: ${error.message}`, 'error');
+                    return;
+                }
+
+                document.getElementById('authPassword').value = '';
+                showStatus('Signed in!', 'success');
+                showMainApp();
+            } finally {
+                signingIn = false;
             }
+        }
 
-            document.getElementById('authPassword').value = '';
-            showStatus('Signed in!', 'success');
-            showMainApp();
+        async function signOut() {
+            await sb.auth.signOut();
+            showAuthSetup();
+            showStatus('Signed out', 'success');
         }
 
         function showMainApp() {
