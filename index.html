@@ -949,9 +949,7 @@
                 location: toNull(document.getElementById('sessionLocation').value),
                 rating: currentRating,
                 notes: toNull(document.getElementById('sessionNotes').value),
-                media: toNull(document.getElementById('sessionVideos').value),
-                // created_at stays client-set until the #46 migration (db/2026-07-11_*.sql) adds DB defaults
-                created_at: new Date().toISOString()
+                media: toNull(document.getElementById('sessionVideos').value)
             };
 
             if (!row.location) {
@@ -984,8 +982,7 @@
                 attempts: posInt('attempts'),
                 performance_highlight: document.getElementById('climbHighlight').checked,
                 notes: toNull(document.getElementById('climbNotes').value),
-                media: toNull(document.getElementById('climbVideos').value),
-                created_at: new Date().toISOString()
+                media: toNull(document.getElementById('climbVideos').value)
             };
 
             if (!row.boulder_name || !row.grade || !row.send_status) {
@@ -1017,8 +1014,7 @@
                 reps: reps,
                 weight: parseFloat(document.getElementById('weight').value),
                 performance_highlight: document.getElementById('trainingHighlight').checked,
-                notes: toNull(document.getElementById('trainingNotes').value),
-                created_at: new Date().toISOString()
+                notes: toNull(document.getElementById('trainingNotes').value)
             };
 
             if (!row.date || !row.exercise || isNaN(row.weight) || row.weight < 0) {
@@ -1335,9 +1331,6 @@
                     notes: toNull(document.getElementById('editTrainingNotes').value)
                 };
             }
-
-            // updated_at stays client-set until the #46 migration installs the moddatetime trigger
-            payload.updated_at = new Date().toISOString();
 
             const { error } = await sb.from(type).update(payload).eq(pk, id);
 
