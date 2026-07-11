@@ -1,3 +1,6 @@
 .env.migration
 __pycache__/
 climbing-reference.md
+# Windows reserved device name accidentally created by POSIX-style `> /dev/null` redirects
+nul
+**/nul
