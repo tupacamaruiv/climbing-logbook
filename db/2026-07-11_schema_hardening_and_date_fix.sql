@@ -58,8 +58,10 @@ WHERE date = (created_at AT TIME ZONE 'UTC')::date
 
 -- Fix mojibake in one climb note: a multiply-encoded apostrophe in
 -- "haven't" on climb C1766513669571 ("Heartfelt but Unserious").
+-- ([^t]+ rather than a character class: the mojibake chars Ã/Â are
+-- alphabetic in Unicode, so [^[:alpha:]] fails to match them.)
 UPDATE public.climbs
-SET notes = regexp_replace(notes, 'haven[^[:alpha:] ]+t tried', 'haven''t tried')
+SET notes = regexp_replace(notes, 'haven[^t]+t tried', 'haven''t tried')
 WHERE climb_id = 'C1766513669571';
 
 -- Drop exercises.category: NULL on all rows, never read by the app.
