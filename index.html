@@ -429,7 +429,7 @@
                         <select id="climbSession" required>
                             <option value="">Choose session...</option>
                         </select>
-                        <p class="help-text">Available sessions will appear here</p>
+                        <p class="help-text">Sessions from the last 7 days</p>
                     </div>
                     <div class="form-group">
                         <label>Boulder Name</label>
@@ -823,9 +823,15 @@
         }
 
         async function loadSessions() {
+            // Bound the fetch: only the last 30 days (capped at 50) are ever needed —
+            // the climb-tab dropdown shows 7 days and the edit-climb dropdown guards
+            // against out-of-window sessions in showEditForm.
+            const cutoff = new Date(Date.now() - 30 * 24 * 60 * 60 * 1000).toLocaleDateString('en-CA');
             const { data, error } = await sb.from('sessions')
                 .select('session_id, date, location')
-                .order('date', { ascending: false });
+                .order('date', { ascending: false })
+                .gte('date', cutoff)
+                .limit(50);
 
             if (error) {
                 if (isAuthError(error)) {
@@ -1132,10 +1138,20 @@
                     </div>
                 `;
             } else if (type === 'climbs') {
+                // availableSessions only covers the last 30 days (see loadSessions).
+                // If this climb's session is outside that window, synthesize a selected
+                // option for it — otherwise the browser would auto-select the first
+                // option and a no-op save would silently reassign the climb.
+                const sessionKnown = availableSessions.some(s => s.sessionId === item.sessionId);
                 fieldsHTML = `
                     <div class="form-group">
                         <label>Session</label>
                         <select id="editClimbSession">
+                            ${sessionKnown ? '' : `
+                                <option value="${escapeHtml(item.sessionId)}" selected>
+                                    Current session (older than 30 days)
+                                </option>
+                            `}
                             ${availableSessions.map(s => `
                                 <option value="${escapeHtml(s.sessionId)}" ${s.sessionId === item.sessionId ? 'selected' : ''}>
                                     ${escapeHtml(s.date)} - ${escapeHtml(s.location)}
