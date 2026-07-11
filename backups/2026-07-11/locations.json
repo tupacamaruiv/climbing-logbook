@@ -1,0 +1,22 @@
+[
+  {
+    "id": 1,
+    "name": "Peak Boulders",
+    "active": true
+  },
+  {
+    "id": 2,
+    "name": "Peak Midlo Board",
+    "active": true
+  },
+  {
+    "id": 3,
+    "name": "Triangle Board",
+    "active": true
+  },
+  {
+    "id": 4,
+    "name": "Triangle Boulders",
+    "active": true
+  }
+]

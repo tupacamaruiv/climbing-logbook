@@ -1,0 +1,110 @@
+[
+  {
+    "id": 1,
+    "name": "Deadlift",
+    "category": null,
+    "active": true
+  },
+  {
+    "id": 2,
+    "name": "Squat",
+    "category": null,
+    "active": true
+  },
+  {
+    "id": 3,
+    "name": "Bench Press",
+    "category": null,
+    "active": true
+  },
+  {
+    "id": 4,
+    "name": "Pull Ups",
+    "category": null,
+    "active": true
+  },
+  {
+    "id": 5,
+    "name": "Overhead Press",
+    "category": null,
+    "active": true
+  },
+  {
+    "id": 6,
+    "name": "Single-leg RDL",
+    "category": null,
+    "active": true
+  },
+  {
+    "id": 7,
+    "name": "Split Squat",
+    "category": null,
+    "active": true
+  },
+  {
+    "id": 8,
+    "name": "Seated Leg Press",
+    "category": null,
+    "active": true
+  },
+  {
+    "id": 9,
+    "name": "Leg Curl",
+    "category": null,
+    "active": true
+  },
+  {
+    "id": 10,
+    "name": "Leg Extension",
+    "category": null,
+    "active": true
+  },
+  {
+    "id": 11,
+    "name": "Sled Push/Pull",
+    "category": null,
+    "active": true
+  },
+  {
+    "id": 12,
+    "name": "Step Up",
+    "category": null,
+    "active": true
+  },
+  {
+    "id": 13,
+    "name": "TGU",
+    "category": null,
+    "active": true
+  },
+  {
+    "id": 14,
+    "name": "20mm Lift",
+    "category": null,
+    "active": true
+  },
+  {
+    "id": 15,
+    "name": "Hangboard Max Hang",
+    "category": null,
+    "active": true
+  },
+  {
+    "id": 16,
+    "name": "Hangboard 25mm",
+    "category": null,
+    "active": true
+  },
+  {
+    "id": 17,
+    "name": "Hangboard 20mm",
+    "category": null,
+    "active": true
+  },
+  {
+    "id": 18,
+    "name": "Peak Board Crimp Crawl",
+    "category": null,
+    "active": true
+  }
+]
