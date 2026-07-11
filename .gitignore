@@ -4,3 +4,5 @@ climbing-reference.md
 # Windows reserved device name accidentally created by POSIX-style `> /dev/null` redirects
 nul
 **/nul
+# Claude Code local settings (machine-specific permissions)
+.claude/
