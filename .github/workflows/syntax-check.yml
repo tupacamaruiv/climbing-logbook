@@ -1,0 +1,21 @@
+# Syntax-checks the inline <script> block in index.html on every push/PR.
+# The awk extraction preserves line numbers, so a node --check error at
+# "line N" is index.html line N.
+#
+# Known caveats (harmless today):
+# - A literal "</script>" inside the JS would truncate the extraction
+#   (it would also break the page itself).
+# - Introducing top-level `await` would require switching the check to
+#   an .mjs extraction (node --check parses as CommonJS by default).
+name: syntax-check
+on: [push, pull_request]
+jobs:
+  check:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Extract inline script and syntax-check it
+        run: |
+          awk '/<script>$/{inb=1; print ""; next} /<\/script>/{inb=0} {print inb ? $0 : ""}' index.html > /tmp/app.js
+          test "$(grep -c . /tmp/app.js)" -gt 100   # fail loudly if extraction came up empty
+          node --check /tmp/app.js
