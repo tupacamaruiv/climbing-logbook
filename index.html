@@ -815,6 +815,11 @@
                 option.textContent = loc;
                 locationSelect.appendChild(option);
             });
+
+            // Pre-select the last-used location (written by submitSession). If it no
+            // longer exists (deactivated), the guard leaves the placeholder selected.
+            const last = localStorage.getItem('lastLocation');
+            if (last && availableLocations.includes(last)) locationSelect.value = last;
         }
 
         async function loadSessions() {

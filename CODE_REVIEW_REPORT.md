@@ -93,7 +93,7 @@ The single-file, no-build approach remains the right call at this scale — no f
 ### Deletion-pass cleanups
 
 - ~~Unused `.quick-buttons` / `.quick-button` CSS (~25 dead lines).~~ ✅ Done 2026-07-11 — deleted.
-- `localStorage.setItem('lastLocation', ...)` — written, never read. Delete it or implement last-location pre-select (arguably the better call for a gym app).
+- ~~`localStorage.setItem('lastLocation', ...)` — written, never read. Delete it or implement last-location pre-select (arguably the better call for a gym app).~~ ✅ Done 2026-07-11 — pre-select implemented at the end of `loadLocations()`, guarded by an `availableLocations.includes` check so a deactivated location falls back to the placeholder.
 - ~~Redundant first clause in the 7-day session filter (`s.date >= today` is a strict subset of the 7-day condition).~~ ✅ Already resolved by `251179b` (single string-compare condition).
 - ~~`rowToSession` maps 8 columns while `loadSessions` selects 3 — misleading to a future reader.~~ ✅ Done 2026-07-11 — dead `timestamp`/`lastUpdated` fields removed from all three mappers (client timestamps were dropped in #46); a comment above `rowToSession` now explains the narrow `loadSessions` select vs. the Edit tab's `select('*')`.
 - ~~`currentRating`/`editRating` globals shadow the sliders' DOM values; reading the input at submit time removes a stale-state bug class.~~ ✅ Done 2026-07-11 — both globals removed; create path reads the slider at submit, edit path uses a `dataset.touched` flag on the (per-render) slider element to preserve the #44 null-until-touched semantics.
