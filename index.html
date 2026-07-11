@@ -7,7 +7,7 @@
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Roboto+Mono:wght@300;400;500;600;700&display=swap" rel="stylesheet">
-    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.110.2/dist/umd/supabase.min.js" integrity="sha384-sgcvElP/LlNRtORGYFLO/9K/bENcpJK19HgvqslWXog6d8f/Va4TpltGiBlGntCM" crossorigin="anonymous"></script>
     <style>
         * { margin: 0; padding: 0; box-sizing: border-box; }
         
@@ -584,9 +584,10 @@
         const sb = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
         let currentRating = 5;
-        let editRating = 5;
+        let editRating = null;
         let existingBoulderNames = [];
         let selectedEditItem = null;
+        let selectedEditType = null;
         let currentEditData = [];
         let availableSessions = [];
         let availableExercises = [];
@@ -617,6 +618,14 @@
             return value === '' || value === undefined ? null : value;
         }
 
+        const localToday = () => new Date().toLocaleDateString('en-CA'); // YYYY-MM-DD in local time
+
+        // Parse a positive integer from an input; null if empty or invalid
+        function posInt(id) {
+            const v = parseInt(document.getElementById(id).value, 10);
+            return Number.isInteger(v) && v >= 1 ? v : null;
+        }
+
         // Map database rows (snake_case) to app objects (camelCase)
         function rowToSession(r) {
             return {
@@ -645,17 +654,29 @@
             };
         }
 
-        // Per-type metadata: DB primary key column, app-side id field, row mapper
+        // Per-type metadata: DB primary key column, app-side id field, Edit-tab sort column, row mapper
         const TYPE_META = {
-            sessions: { pk: 'session_id', idField: 'sessionId', map: rowToSession },
-            climbs: { pk: 'climb_id', idField: 'climbId', map: rowToClimb },
-            training: { pk: 'training_id', idField: 'trainingId', map: rowToTraining }
+            sessions: { pk: 'session_id', idField: 'sessionId', order: 'date', map: rowToSession },
+            climbs: { pk: 'climb_id', idField: 'climbId', order: 'created_at', map: rowToClimb },
+            training: { pk: 'training_id', idField: 'trainingId', order: 'date', map: rowToTraining }
         };
 
+        // Only true auth-expiry errors — RLS/permission denials go through normal error display
         function isAuthError(error) {
             const msg = ((error && error.message) || '').toLowerCase();
-            return (error && error.code === '42501') || msg.includes('jwt') ||
-                msg.includes('not authenticated') || msg.includes('row-level security');
+            return msg.includes('jwt') || msg.includes('refresh token') ||
+                msg.includes('not authenticated');
+        }
+
+        // Shared error reporting for writes (insert/update/delete)
+        function reportWriteError(error, action) {
+            if (isAuthError(error)) {
+                showAuthSetup('Your session has expired. Please sign in again.');
+            } else if (error.code === '23503') {
+                showStatus('This session has climbs logged against it — delete those climbs first.', 'error');
+            } else {
+                showStatus(`${action} failed: ${error.message}`, 'error');
+            }
         }
 
         // Prevent duplicate writes from double-taps: disable the triggering button
@@ -671,6 +692,8 @@
             }
             try {
                 await handler();
+            } catch (e) {
+                showStatus('Unexpected error: ' + e.message, 'error');
             } finally {
                 writeInProgress = false;
                 if (button) {
@@ -683,7 +706,7 @@
         document.addEventListener('DOMContentLoaded', initializeApp);
 
         async function initializeApp() {
-            const today = new Date().toISOString().split('T')[0];
+            const today = localToday();
             document.getElementById('sessionDate').value = today;
             document.getElementById('trainingDate').value = today;
 
@@ -792,7 +815,11 @@
                 .order('name');
 
             if (error) {
-                console.log('Failed to load locations:', error.message);
+                if (isAuthError(error)) {
+                    showAuthSetup('Your session has expired. Please sign in again.');
+                } else {
+                    showStatus('Failed to load locations', 'error');
+                }
                 return;
             }
 
@@ -814,7 +841,11 @@
                 .order('date', { ascending: false });
 
             if (error) {
-                console.log('Failed to load sessions:', error.message);
+                if (isAuthError(error)) {
+                    showAuthSetup('Your session has expired. Please sign in again.');
+                } else {
+                    showStatus('Failed to load sessions', 'error');
+                }
                 return;
             }
 
@@ -826,10 +857,10 @@
             const dropdown = document.getElementById('climbSession');
             dropdown.innerHTML = '<option value="">Choose session...</option>';
 
-            const today = new Date().toISOString().split('T')[0];
-            const recentSessions = sessions.filter(s => s.date >= today || 
-                (new Date(s.date) >= new Date(Date.now() - 7 * 24 * 60 * 60 * 1000)))
-                .sort((a, b) => new Date(b.date) - new Date(a.date));
+            // Sessions from the last 7 days; dates are YYYY-MM-DD strings so string compare works
+            const cutoff = new Date(Date.now() - 7 * 24 * 60 * 60 * 1000).toLocaleDateString('en-CA');
+            const recentSessions = sessions.filter(s => s.date >= cutoff)
+                .sort((a, b) => b.date.localeCompare(a.date));
 
             recentSessions.forEach(session => {
                 const option = document.createElement('option');
@@ -847,7 +878,11 @@
                 .limit(100);
 
             if (error) {
-                console.log('Failed to load climbs:', error.message);
+                if (isAuthError(error)) {
+                    showAuthSetup('Your session has expired. Please sign in again.');
+                } else {
+                    showStatus('Failed to load climbs', 'error');
+                }
                 return;
             }
 
@@ -884,11 +919,15 @@
                 .order('name');
 
             if (error) {
-                console.log('Failed to load exercises:', error.message);
-                availableExercises = [];
-            } else {
-                availableExercises = data.map(e => e.name);
+                if (isAuthError(error)) {
+                    showAuthSetup('Your session has expired. Please sign in again.');
+                } else {
+                    showStatus('Failed to load exercises', 'error');
+                }
+                return;
             }
+
+            availableExercises = data.map(e => e.name);
 
             // Populate training select
             const exerciseSelect = document.getElementById('exercise');
@@ -904,15 +943,15 @@
         }
 
         async function submitSession() {
-            const now = new Date();
             const row = {
                 session_id: 'S' + Date.now(),
-                date: document.getElementById('sessionDate').value || now.toISOString().split('T')[0],
+                date: document.getElementById('sessionDate').value || localToday(),
                 location: toNull(document.getElementById('sessionLocation').value),
                 rating: currentRating,
                 notes: toNull(document.getElementById('sessionNotes').value),
                 media: toNull(document.getElementById('sessionVideos').value),
-                created_at: now.toISOString()
+                // created_at stays client-set until the #46 migration (db/2026-07-11_*.sql) adds DB defaults
+                created_at: new Date().toISOString()
             };
 
             if (!row.location) {
@@ -942,7 +981,7 @@
                 grade: toNull(document.getElementById('climbGrade').value),
                 send_status: toNull(document.getElementById('sendStatus').value),
                 is_project: document.getElementById('isProject').checked,
-                attempts: parseInt(document.getElementById('attempts').value),
+                attempts: posInt('attempts'),
                 performance_highlight: document.getElementById('climbHighlight').checked,
                 notes: toNull(document.getElementById('climbNotes').value),
                 media: toNull(document.getElementById('climbVideos').value),
@@ -951,6 +990,11 @@
 
             if (!row.boulder_name || !row.grade || !row.send_status) {
                 showStatus('Please fill in boulder name, grade, and send status', 'error');
+                return;
+            }
+
+            if (row.attempts === null) {
+                showStatus('Attempts must be a whole number of 1 or more', 'error');
                 return;
             }
 
@@ -963,20 +1007,27 @@
         async function submitTraining() {
             const setsVal = document.getElementById('trainingSets').value.trim();
             const repsVal = document.getElementById('trainingReps').value.trim();
+            const sets = posInt('trainingSets');
+            const reps = posInt('trainingReps');
             const row = {
                 training_id: 'T' + Date.now(),
                 date: toNull(document.getElementById('trainingDate').value),
                 exercise: toNull(document.getElementById('exercise').value),
-                sets: setsVal !== '' ? parseInt(setsVal) : null,
-                reps: repsVal !== '' ? parseInt(repsVal) : null,
+                sets: sets,
+                reps: reps,
                 weight: parseFloat(document.getElementById('weight').value),
                 performance_highlight: document.getElementById('trainingHighlight').checked,
                 notes: toNull(document.getElementById('trainingNotes').value),
                 created_at: new Date().toISOString()
             };
 
-            if (!row.date || !row.exercise || isNaN(row.weight)) {
+            if (!row.date || !row.exercise || isNaN(row.weight) || row.weight < 0) {
                 showStatus('Please fill in date, exercise, and weight', 'error');
+                return;
+            }
+
+            if ((setsVal !== '' && sets === null) || (repsVal !== '' && reps === null)) {
+                showStatus('Sets and reps must be whole numbers of 1 or more', 'error');
                 return;
             }
 
@@ -989,11 +1040,7 @@
             const { error } = await sb.from(table).insert(row);
 
             if (error) {
-                if (isAuthError(error)) {
-                    showAuthSetup('Your session has expired. Please sign in again.');
-                } else {
-                    showStatus(`Save failed: ${error.message}`, 'error');
-                }
+                reportWriteError(error, 'Save');
                 return false;
             }
 
@@ -1002,20 +1049,21 @@
         }
 
         async function loadEditData() {
+            // Always drop any previous selection so a type switch can't act on a stale item
+            clearEditForm();
+
             const type = document.getElementById('editType').value;
             if (!type) {
                 document.getElementById('recentItems').style.display = 'none';
-                document.getElementById('editFormContainer').style.display = 'none';
-                document.getElementById('deleteButton').style.display = 'none';
                 return;
             }
 
             const config = TYPE_META[type];
 
-            // Sort by primary key descending (IDs are timestamp-based: S/C/T + epoch ms)
+            // Sort by the per-type order column (date or created_at) descending
             const { data, error } = await sb.from(type)
                 .select('*')
-                .order(config.pk, { ascending: false })
+                .order(config.order, { ascending: false })
                 .limit(10);
 
             if (error) {
@@ -1071,6 +1119,7 @@
         function selectEditItem(itemId, type, event) {
             const idField = TYPE_META[type].idField;
             selectedEditItem = currentEditData.find(item => item[idField] === itemId) || null;
+            selectedEditType = selectedEditItem ? type : null;
 
             document.querySelectorAll('.edit-item').forEach(item => {
                 item.classList.remove('selected');
@@ -1111,7 +1160,8 @@
                         <input type="url" id="editSessionVideos" value="${escapeHtml(item.videos)}" />
                     </div>
                 `;
-                editRating = item.rating || 5;
+                // Null until the user moves the slider — don't silently write the visual default
+                editRating = item.rating ?? null;
             } else if (type === 'climbs') {
                 fieldsHTML = `
                     <div class="form-group">
@@ -1231,7 +1281,7 @@
                 return;
             }
 
-            const type = document.getElementById('editType').value;
+            const type = selectedEditType;
             const pk = TYPE_META[type].pk;
             const id = selectedEditItem[TYPE_META[type].idField];
             let payload;
@@ -1240,17 +1290,22 @@
                 payload = {
                     date: document.getElementById('editSessionDate').value,
                     location: toNull(document.getElementById('editSessionLocation').value),
-                    rating: editRating,
                     notes: toNull(document.getElementById('editSessionNotes').value),
                     media: toNull(document.getElementById('editSessionVideos').value)
                 };
+                if (editRating !== null) payload.rating = editRating;
             } else if (type === 'climbs') {
+                const attempts = posInt('editAttempts');
+                if (attempts === null) {
+                    showStatus('Attempts must be a whole number of 1 or more', 'error');
+                    return;
+                }
                 payload = {
                     session_id: document.getElementById('editClimbSession').value,
                     boulder_name: toNull(document.getElementById('editBoulderName').value),
                     grade: toNull(document.getElementById('editClimbGrade').value),
                     send_status: toNull(document.getElementById('editSendStatus').value),
-                    attempts: parseInt(document.getElementById('editAttempts').value),
+                    attempts: attempts,
                     is_project: document.getElementById('editIsProject').checked,
                     performance_highlight: document.getElementById('editClimbHighlight').checked,
                     notes: toNull(document.getElementById('editClimbNotes').value),
@@ -1259,27 +1314,35 @@
             } else if (type === 'training') {
                 const editSetsVal = document.getElementById('editTrainingSets').value.trim();
                 const editRepsVal = document.getElementById('editTrainingReps').value.trim();
+                const editSets = posInt('editTrainingSets');
+                const editReps = posInt('editTrainingReps');
+                const weight = parseFloat(document.getElementById('editWeight').value);
+                if (isNaN(weight) || weight < 0) {
+                    showStatus('Please enter a valid weight of 0 or more', 'error');
+                    return;
+                }
+                if ((editSetsVal !== '' && editSets === null) || (editRepsVal !== '' && editReps === null)) {
+                    showStatus('Sets and reps must be whole numbers of 1 or more', 'error');
+                    return;
+                }
                 payload = {
                     date: document.getElementById('editTrainingDate').value,
                     exercise: toNull(document.getElementById('editExercise').value),
-                    sets: editSetsVal !== '' ? parseInt(editSetsVal) : null,
-                    reps: editRepsVal !== '' ? parseInt(editRepsVal) : null,
-                    weight: parseFloat(document.getElementById('editWeight').value),
+                    sets: editSets,
+                    reps: editReps,
+                    weight: weight,
                     performance_highlight: document.getElementById('editTrainingHighlight').checked,
                     notes: toNull(document.getElementById('editTrainingNotes').value)
                 };
             }
 
+            // updated_at stays client-set until the #46 migration installs the moddatetime trigger
             payload.updated_at = new Date().toISOString();
 
             const { error } = await sb.from(type).update(payload).eq(pk, id);
 
             if (error) {
-                if (isAuthError(error)) {
-                    showAuthSetup('Your session has expired. Please sign in again.');
-                } else {
-                    showStatus(`Update failed: ${error.message}`, 'error');
-                }
+                reportWriteError(error, 'Update');
                 return;
             }
 
@@ -1296,6 +1359,7 @@
             document.getElementById('editFormContainer').style.display = 'none';
             document.getElementById('deleteButton').style.display = 'none';
             selectedEditItem = null;
+            selectedEditType = null;
             
             document.querySelectorAll('.edit-item').forEach(item => {
                 item.classList.remove('selected');
@@ -1308,7 +1372,7 @@
                 return;
             }
 
-            const type = document.getElementById('editType').value;
+            const type = selectedEditType;
             let itemDescription = '';
 
             if (type === 'sessions') {
@@ -1329,7 +1393,7 @@
         }
 
         async function confirmDelete() {
-            const type = document.getElementById('editType').value;
+            const type = selectedEditType;
             const pk = TYPE_META[type].pk;
             const id = selectedEditItem[TYPE_META[type].idField];
 
@@ -1337,11 +1401,7 @@
 
             if (error) {
                 hideDeleteConfirmation();
-                if (isAuthError(error)) {
-                    showAuthSetup('Your session has expired. Please sign in again.');
-                } else {
-                    showStatus(`Delete failed: ${error.message}`, 'error');
-                }
+                reportWriteError(error, 'Delete');
                 return;
             }
 
@@ -1354,7 +1414,7 @@
         }
 
         function clearSessionForm() {
-            const today = new Date().toISOString().split('T')[0];
+            const today = localToday();
             document.getElementById('sessionDate').value = today;
             document.getElementById('sessionNotes').value = '';
             document.getElementById('sessionVideos').value = '';
@@ -1383,11 +1443,13 @@
             document.getElementById('trainingReps').value = '';
         }
 
+        let statusTimeoutId = null;
         function showStatus(message, type) {
             const status = document.getElementById('status');
+            clearTimeout(statusTimeoutId);
             status.className = `status ${type}`;
             status.textContent = message;
-            setTimeout(() => {
+            statusTimeoutId = setTimeout(() => {
                 status.textContent = '';
                 status.className = '';
             }, 5000);
