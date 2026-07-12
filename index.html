@@ -1204,35 +1204,8 @@
         }
 
         async function submitClimb() {
-            const sessionId = document.getElementById('climbSession').value;
-
-            if (!sessionId) {
-                showStatus('Please select a session first', 'error');
-                return;
-            }
-
-            const row = {
-                climb_id: 'C' + Date.now(),
-                session_id: sessionId,
-                boulder_name: toNull(document.getElementById('boulderName').value),
-                grade: toNull(document.getElementById('climbGrade').value),
-                send_status: toNull(document.getElementById('sendStatus').value),
-                is_project: document.getElementById('isProject').checked,
-                attempts: posInt('attempts'),
-                performance_highlight: document.getElementById('climbHighlight').checked,
-                notes: toNull(document.getElementById('climbNotes').value),
-                media: toNull(document.getElementById('climbVideos').value)
-            };
-
-            if (!row.boulder_name || !row.grade || !row.send_status) {
-                showStatus('Please fill in boulder name, grade, and send status', 'error');
-                return;
-            }
-
-            if (row.attempts === null) {
-                showStatus('Attempts must be a whole number of 1 or more', 'error');
-                return;
-            }
+            const row = buildPayload('climbs', 'create');
+            if (!row) return;
 
             if (await performWrite(sb.from('climbs').insert(row), 'Save', 'Climb Logged! 🎉')) {
                 clearClimbForm();
@@ -1430,22 +1403,8 @@
                 payload = buildPayload('sessions', 'edit', selectedEditItem);
                 if (!payload) return;
             } else if (type === 'climbs') {
-                const attempts = posInt('editAttempts');
-                if (attempts === null) {
-                    showStatus('Attempts must be a whole number of 1 or more', 'error');
-                    return;
-                }
-                payload = {
-                    session_id: document.getElementById('editClimbSession').value,
-                    boulder_name: toNull(document.getElementById('editBoulderName').value),
-                    grade: toNull(document.getElementById('editClimbGrade').value),
-                    send_status: toNull(document.getElementById('editSendStatus').value),
-                    attempts: attempts,
-                    is_project: document.getElementById('editIsProject').checked,
-                    performance_highlight: document.getElementById('editClimbHighlight').checked,
-                    notes: toNull(document.getElementById('editClimbNotes').value),
-                    media: toNull(document.getElementById('editClimbVideos').value)
-                };
+                payload = buildPayload('climbs', 'edit', selectedEditItem);
+                if (!payload) return;
             } else if (type === 'training') {
                 payload = buildPayload('training', 'edit', selectedEditItem);
                 if (!payload) return;
