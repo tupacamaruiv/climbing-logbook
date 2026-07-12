@@ -1208,7 +1208,7 @@
             if (!row) return;
 
             if (await performWrite(sb.from('climbs').insert(row), 'Save', 'Climb Logged! 🎉')) {
-                clearClimbForm();
+                resetCreateForm('climbs');
                 loadBoulderNames();
             }
         }
@@ -1304,88 +1304,7 @@
         }
 
         function showEditForm(type, item) {
-            if (type === 'sessions' || type === 'training') {
-                renderEditFields(type, item);
-                return;
-            }
-
-            const container = document.getElementById('editFields');
-            let fieldsHTML = '';
-
-            if (type === 'climbs') {
-                // availableSessions only covers the last 30 days (see loadSessions).
-                // If this climb's session is outside that window, synthesize a selected
-                // option for it — otherwise the browser would auto-select the first
-                // option and a no-op save would silently reassign the climb.
-                const sessionKnown = availableSessions.some(s => s.sessionId === item.sessionId);
-                fieldsHTML = `
-                    <div class="form-group">
-                        <label>Session</label>
-                        <select id="editClimbSession">
-                            ${sessionKnown ? '' : `
-                                <option value="${escapeHtml(item.sessionId)}" selected>
-                                    Current session (older than 30 days)
-                                </option>
-                            `}
-                            ${availableSessions.map(s => `
-                                <option value="${escapeHtml(s.sessionId)}" ${s.sessionId === item.sessionId ? 'selected' : ''}>
-                                    ${escapeHtml(s.date)} - ${escapeHtml(s.location)}
-                                </option>
-                            `).join('')}
-                        </select>
-                    </div>
-                    <div class="form-group">
-                        <label>Boulder Name</label>
-                        <input type="text" id="editBoulderName" value="" />
-                    </div>
-                    <div class="form-group">
-                        <label>Grade</label>
-                        <input type="text" id="editClimbGrade" value="${escapeHtml(item.grade)}" />
-                    </div>
-                    <div class="form-group">
-                        <label>Send Status</label>
-                        <select id="editSendStatus">
-                            <option value="Flash" ${item.sendStatus === 'Flash' ? 'selected' : ''}>Flash</option>
-                            <option value="Send" ${item.sendStatus === 'Send' ? 'selected' : ''}>Send</option>
-                            <option value="Attempt" ${item.sendStatus === 'Attempt' ? 'selected' : ''}>Attempt</option>
-                            <option value="Gave Up" ${item.sendStatus === 'Gave Up' ? 'selected' : ''}>Gave Up</option>
-                        </select>
-                    </div>
-                    <div class="form-group">
-                        <label>Attempts This Session</label>
-                        <input type="number" id="editAttempts" min="1" value="${escapeHtml(item.attempts || 1)}" />
-                    </div>
-                    <div class="form-group">
-                        <div class="checkbox-group">
-                            <input type="checkbox" id="editIsProject" class="checkbox" ${item.isProject ? 'checked' : ''} />
-                            <label for="editIsProject" class="checkbox-label">This is a project</label>
-                        </div>
-                    </div>
-                    <div class="form-group">
-                        <div class="checkbox-group">
-                            <input type="checkbox" id="editClimbHighlight" class="checkbox" ${item.performanceHighlight ? 'checked' : ''} />
-                            <label for="editClimbHighlight" class="checkbox-label">Performance Highlight</label>
-                        </div>
-                    </div>
-                    <div class="form-group">
-                        <label>Climb Notes</label>
-                        <textarea id="editClimbNotes" rows="8"></textarea>
-                    </div>
-                    <div class="form-group">
-                        <label>Media</label>
-                        <input type="url" id="editClimbVideos" value="${escapeHtml(item.media)}" />
-                    </div>
-                `;
-            }
-
-            container.innerHTML = fieldsHTML;
-            
-            // Set textarea values after DOM is created (to properly handle special characters)
-            safeSetValue('editBoulderName', item.boulderName);
-            safeSetValue('editClimbNotes', item.notes);
-            
-            document.getElementById('editFormContainer').style.display = 'block';
-            document.getElementById('deleteButton').style.display = 'block';
+            renderEditFields(type, item);
         }
 
         async function updateEntry() {
@@ -1470,17 +1389,6 @@
             loadEditData();
             if (type === 'climbs') loadBoulderNames();
             if (type === 'sessions') loadSessions();
-        }
-
-        function clearClimbForm() {
-            document.getElementById('boulderName').value = '';
-            document.getElementById('climbGrade').value = '';
-            document.getElementById('climbNotes').value = '';
-            document.getElementById('climbVideos').value = '';
-            document.getElementById('isProject').checked = false;
-            document.getElementById('climbHighlight').checked = false;
-            document.getElementById('attempts').value = '1';
-            document.getElementById('sendStatus').value = '';
         }
 
         let statusTimeoutId = null;
