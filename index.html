@@ -600,12 +600,12 @@
         }
 
         // Map database rows (snake_case) to app objects (camelCase)
-        // Note: loadSessions selects only session_id/date/location, so rating/notes/videos
+        // Note: loadSessions selects only session_id/date/location, so rating/notes/media
         // are undefined there; the Edit tab selects * and uses them all.
         function rowToSession(r) {
             return {
                 sessionId: r.session_id, date: r.date, location: r.location,
-                rating: r.rating, notes: r.notes, videos: r.media
+                rating: r.rating, notes: r.notes, media: r.media
             };
         }
 
@@ -614,7 +614,7 @@
                 climbId: r.climb_id, sessionId: r.session_id, boulderName: r.boulder_name,
                 grade: r.grade, sendStatus: r.send_status, isProject: r.is_project,
                 attempts: r.attempts, performanceHighlight: r.performance_highlight,
-                notes: r.notes, videos: r.media
+                notes: r.notes, media: r.media
             };
         }
 
@@ -626,12 +626,267 @@
             };
         }
 
-        // Per-type metadata: DB primary key column, app-side id field, Edit-tab sort column, row mapper
+        // Per-type metadata: DB primary key column, new-row id prefix, app-side id field,
+        // Edit-tab sort column, row mapper
         const TYPE_META = {
-            sessions: { pk: 'session_id', idField: 'sessionId', order: 'date', map: rowToSession },
-            climbs: { pk: 'climb_id', idField: 'climbId', order: 'created_at', map: rowToClimb },
-            training: { pk: 'training_id', idField: 'trainingId', order: 'date', map: rowToTraining }
+            sessions: { pk: 'session_id', idPrefix: 'S', idField: 'sessionId', order: 'date', map: rowToSession },
+            climbs: { pk: 'climb_id', idPrefix: 'C', idField: 'climbId', order: 'created_at', map: rowToClimb },
+            training: { pk: 'training_id', idPrefix: 'T', idField: 'trainingId', order: 'date', map: rowToTraining }
         };
+
+        // ---- Field descriptors ----
+        // Single source of truth per entity for: create-submit reads, update reads,
+        // edit-form rendering, and create-form resets. The create-form HTML stays
+        // hand-written; assertFormDefinitions fails loudly on load if it drifts.
+        // kind ∈ text | url | textarea | date | select | posInt | float | checkbox | rating | sessionSelect
+        const ENTITY_FIELDS = {
+            sessions: [
+                { col: 'date',     id: 'sessionDate',     label: 'Date',     kind: 'date', required: true, createFallbackToday: true },
+                { col: 'location', id: 'sessionLocation', label: 'Location', kind: 'select', required: true,
+                  options: () => availableLocations, placeholder: 'Choose location...', preserveOnReset: true },
+                { col: 'rating',   id: 'sessionRating',   label: 'Session Rating (1-10)', kind: 'rating' },
+                { col: 'notes',    id: 'sessionNotes',    label: 'Notes',    kind: 'textarea' },
+                { col: 'media',    id: 'sessionVideos',   label: 'Media',    kind: 'url' }
+            ],
+            climbs: [
+                { col: 'session_id', id: 'climbSession',  label: 'Session',  kind: 'sessionSelect', required: true,
+                  requiredMsg: 'Please select a session first', preserveOnReset: true },
+                { col: 'boulder_name', id: 'boulderName', label: 'Boulder Name', kind: 'text', required: true },
+                { col: 'grade',      id: 'climbGrade',    label: 'Grade',    kind: 'text', required: true },
+                { col: 'send_status', id: 'sendStatus',   label: 'Send Status', kind: 'select', required: true,
+                  options: () => ['Flash', 'Send', 'Attempt', 'Gave Up'] },
+                { col: 'attempts',   id: 'attempts',      label: 'Attempts This Session', kind: 'posInt', required: true,
+                  resetTo: '1', invalidMsg: 'Attempts must be a whole number of 1 or more' },
+                { col: 'is_project', id: 'isProject',     label: 'Project',  kind: 'checkbox', editLabel: 'This is a project' },
+                { col: 'performance_highlight', id: 'climbHighlight', label: 'Performance Highlight', kind: 'checkbox' },
+                { col: 'notes',      id: 'climbNotes',    label: 'Climb Notes', kind: 'textarea' },
+                { col: 'media',      id: 'climbVideos',   label: 'Media',    kind: 'url' }
+            ],
+            training: [
+                { col: 'date',     id: 'trainingDate',  label: 'Date',     kind: 'date', required: true, preserveOnReset: true },
+                { col: 'exercise', id: 'exercise',      label: 'Exercise', kind: 'select', required: true,
+                  options: () => availableExercises },
+                { col: 'sets',     id: 'trainingSets',  label: 'Sets',     kind: 'posInt', optional: true,
+                  placeholder: 'e.g. 3', invalidMsg: 'Sets and reps must be whole numbers of 1 or more' },
+                { col: 'reps',     id: 'trainingReps',  label: 'Reps',     kind: 'posInt', optional: true,
+                  placeholder: 'e.g. 8', invalidMsg: 'Sets and reps must be whole numbers of 1 or more' },
+                { col: 'weight',   id: 'weight',        label: 'Working Weight (lbs)', kind: 'float', required: true,
+                  min: 0, step: 0.5, msgLabel: 'weight', invalidMsg: 'Please enter a valid weight of 0 or more' },
+                { col: 'performance_highlight', id: 'trainingHighlight', label: 'Performance Highlight (PR, etc.)',
+                  kind: 'checkbox', editLabel: 'Performance Highlight' },
+                { col: 'notes',    id: 'trainingNotes', label: 'Notes',    kind: 'textarea' }
+            ]
+        };
+
+        // Edit-form ids are always 'edit' + capitalized create id (sessionDate → editSessionDate)
+        const editIdOf = f => 'edit' + f.id[0].toUpperCase() + f.id.slice(1);
+        // App-side property names are the camelCase of the DB column (boulder_name → boulderName)
+        const propOf = f => f.col.replace(/_([a-z])/g, (_, c) => c.toUpperCase());
+
+        const fieldGroup = (f, inner) => `
+            <div class="form-group">
+                <label>${f.label}${f.optional ? ' <span style="font-weight:400;color:#6b7280;">(optional)</span>' : ''}</label>
+                ${inner}
+            </div>`;
+
+        // Per-kind behavior: read(el) → payload value; renderEdit(f, item, id) → edit-form
+        // HTML; afterRender(f, item, id) → post-innerHTML wiring; reset(el) → create-form
+        // reset; include(el, item, mode) → whether the value goes into the payload.
+        // Every attribute interpolation goes through escapeHtml; textarea content is set
+        // post-render via safeSetValue so special characters survive.
+        const KIND = {
+            text: {
+                read: el => toNull(el.value),
+                renderEdit: (f, item, id) => fieldGroup(f, `<input type="text" id="${id}" value="${escapeHtml(item[propOf(f)])}" />`),
+                reset: el => { el.value = ''; }
+            },
+            url: {
+                read: el => toNull(el.value),
+                renderEdit: (f, item, id) => fieldGroup(f, `<input type="url" id="${id}" value="${escapeHtml(item[propOf(f)])}" />`),
+                reset: el => { el.value = ''; }
+            },
+            textarea: {
+                read: el => toNull(el.value),
+                renderEdit: (f, item, id) => fieldGroup(f, `<textarea id="${id}" rows="8"></textarea>`),
+                afterRender: (f, item, id) => safeSetValue(id, item[propOf(f)]),
+                reset: el => { el.value = ''; }
+            },
+            date: {
+                read: el => toNull(el.value),
+                renderEdit: (f, item, id) => fieldGroup(f, `<input type="date" id="${id}" value="${escapeHtml(item[propOf(f)])}" />`),
+                reset: el => { el.value = localToday(); }
+            },
+            select: {
+                read: el => toNull(el.value),
+                renderEdit: (f, item, id) => {
+                    const current = item[propOf(f)];
+                    const placeholder = f.placeholder ? `<option value="">${f.placeholder}</option>` : '';
+                    const options = f.options().map(o =>
+                        `<option value="${escapeHtml(o)}" ${current === o ? 'selected' : ''}>${escapeHtml(o)}</option>`
+                    ).join('');
+                    return fieldGroup(f, `<select id="${id}">${placeholder}${options}</select>`);
+                },
+                reset: el => { el.value = ''; }
+            },
+            posInt: {
+                read: el => {
+                    const v = parseInt(el.value, 10);
+                    return Number.isInteger(v) && v >= 1 ? v : null;
+                },
+                renderEdit: (f, item, id) => {
+                    const value = f.required
+                        ? (item[propOf(f)] || f.resetTo)
+                        : (item[propOf(f)] != null ? item[propOf(f)] : '');
+                    const placeholder = f.placeholder ? ` placeholder="${f.placeholder}"` : '';
+                    return fieldGroup(f, `<input type="number" id="${id}" min="1"${placeholder} value="${escapeHtml(value)}" />`);
+                },
+                reset: el => { el.value = ''; }
+            },
+            float: {
+                read: el => parseFloat(el.value),
+                renderEdit: (f, item, id) => fieldGroup(f,
+                    `<input type="number" id="${id}" min="${f.min}" step="${f.step}" value="${escapeHtml(item[propOf(f)])}" />`),
+                reset: el => { el.value = ''; }
+            },
+            checkbox: {
+                read: el => el.checked,
+                renderEdit: (f, item, id) => `
+            <div class="form-group">
+                <div class="checkbox-group">
+                    <input type="checkbox" id="${id}" class="checkbox" ${item[propOf(f)] ? 'checked' : ''} />
+                    <label for="${id}" class="checkbox-label">${f.editLabel || f.label}</label>
+                </div>
+            </div>`,
+                reset: el => { el.checked = false; }
+            },
+            // Sessions-only. On update the rating is written only when the row already has
+            // one or the user moved the slider (dataset.touched) — never the visual default
+            // on a NULL-rating row (issue #44).
+            rating: {
+                read: el => parseInt(el.value, 10),
+                include: (el, item, mode) => mode === 'create' || item.rating != null || !!el.dataset.touched,
+                renderEdit: (f, item, id) => fieldGroup(f, `
+                <input type="range" id="${id}" min="1" max="10" value="${item.rating || 5}" />
+                <div class="range-value"><span id="editRatingValue">${item.rating || 5}</span>/10</div>`),
+                afterRender: (f, item, id) => {
+                    document.getElementById(id).addEventListener('input', function() {
+                        document.getElementById('editRatingValue').textContent = this.value;
+                        this.dataset.touched = '1';
+                    });
+                },
+                reset: el => {
+                    el.value = 5;
+                    document.getElementById('ratingValue').textContent = '5';
+                }
+            },
+            // Climbs-only. availableSessions covers only the last 30 days (see loadSessions);
+            // if the climb's session is outside that window, synthesize a selected option so
+            // a no-op save can't silently reassign the climb to the first listed session.
+            sessionSelect: {
+                read: el => toNull(el.value),
+                renderEdit: (f, item, id) => {
+                    const sessionKnown = availableSessions.some(s => s.sessionId === item.sessionId);
+                    const current = sessionKnown ? '' :
+                        `<option value="${escapeHtml(item.sessionId)}" selected>Current session (older than 30 days)</option>`;
+                    const options = availableSessions.map(s =>
+                        `<option value="${escapeHtml(s.sessionId)}" ${s.sessionId === item.sessionId ? 'selected' : ''}>${escapeHtml(s.date)} - ${escapeHtml(s.location)}</option>`
+                    ).join('');
+                    return fieldGroup(f, `<select id="${id}">${current}${options}</select>`);
+                }
+                // no reset: preserveOnReset (sticky session for logging several climbs)
+            }
+        };
+
+        // Join labels as prose: 'a' / 'a and b' / 'a, b, and c'
+        function listJoin(labels) {
+            if (labels.length <= 1) return labels.join('');
+            if (labels.length === 2) return labels.join(' and ');
+            return labels.slice(0, -1).join(', ') + ', and ' + labels[labels.length - 1];
+        }
+
+        // Read one entity's form (create or edit) into a DB payload keyed by column name.
+        // Shows a status message and returns null if validation fails. `item` is the row
+        // being edited (needed for the rating touched-check); omit for create.
+        function buildPayload(type, mode, item) {
+            const payload = {};
+            const missing = [];
+            let invalidMsg = null;
+
+            for (const f of ENTITY_FIELDS[type]) {
+                const el = document.getElementById(mode === 'edit' ? editIdOf(f) : f.id);
+                const kind = KIND[f.kind];
+                let value = kind.read(el);
+
+                if (mode === 'create' && f.createFallbackToday && value === null) value = localToday();
+
+                if (f.kind === 'posInt') {
+                    if ((f.required || el.value.trim() !== '') && value === null) invalidMsg = invalidMsg || f.invalidMsg;
+                } else if (f.kind === 'float') {
+                    if (isNaN(value) || value < f.min) {
+                        // Same asymmetry as before the refactor: create folds the field into
+                        // the combined "Please fill in ..." message; edit shows the specific one.
+                        if (mode === 'create') missing.push(f.msgLabel || f.label.toLowerCase());
+                        else invalidMsg = invalidMsg || f.invalidMsg;
+                    }
+                } else if (f.required && value === null) {
+                    if (f.requiredMsg) {
+                        showStatus(f.requiredMsg, 'error');
+                        return null;
+                    }
+                    missing.push(f.msgLabel || f.label.toLowerCase());
+                }
+
+                if (!kind.include || kind.include(el, item, mode)) payload[f.col] = value;
+            }
+
+            if (missing.length) {
+                showStatus('Please fill in ' + listJoin(missing), 'error');
+                return null;
+            }
+            if (invalidMsg) {
+                showStatus(invalidMsg, 'error');
+                return null;
+            }
+
+            if (mode === 'create') payload[TYPE_META[type].pk] = TYPE_META[type].idPrefix + Date.now();
+            return payload;
+        }
+
+        // Render the edit form for one entity from its descriptors
+        function renderEditFields(type, item) {
+            const container = document.getElementById('editFields');
+            container.innerHTML = ENTITY_FIELDS[type].map(f => KIND[f.kind].renderEdit(f, item, editIdOf(f))).join('');
+            ENTITY_FIELDS[type].forEach(f => {
+                if (KIND[f.kind].afterRender) KIND[f.kind].afterRender(f, item, editIdOf(f));
+            });
+            document.getElementById('editFormContainer').style.display = 'block';
+            document.getElementById('deleteButton').style.display = 'block';
+        }
+
+        // Reset a create form after a successful submit, honoring sticky fields
+        function resetCreateForm(type) {
+            ENTITY_FIELDS[type].forEach(f => {
+                if (f.preserveOnReset) return;
+                const el = document.getElementById(f.id);
+                if (f.resetTo !== undefined) el.value = f.resetTo;
+                else if (KIND[f.kind].reset) KIND[f.kind].reset(el);
+            });
+        }
+
+        // The create-form HTML is hand-written; fail loudly on page load if it drifts
+        // from the descriptors (missing id or wrong element kind).
+        function assertFormDefinitions() {
+            Object.values(ENTITY_FIELDS).forEach(fields => fields.forEach(f => {
+                const el = document.getElementById(f.id);
+                const ok = el &&
+                    (f.kind !== 'select' && f.kind !== 'sessionSelect' || el.tagName === 'SELECT') &&
+                    (f.kind !== 'textarea' || el.tagName === 'TEXTAREA') &&
+                    (f.kind !== 'checkbox' || el.type === 'checkbox') &&
+                    (f.kind !== 'rating' || el.type === 'range') &&
+                    (f.kind !== 'date' || el.type === 'date');
+                if (!ok) showStatus('Form definition mismatch: #' + f.id, 'error');
+            }));
+        }
 
         // Only true auth-expiry errors — RLS/permission denials go through normal error display
         function isAuthError(error) {
@@ -689,6 +944,8 @@
         document.addEventListener('DOMContentLoaded', initializeApp);
 
         async function initializeApp() {
+            assertFormDefinitions();
+
             const today = localToday();
             document.getElementById('sessionDate').value = today;
             document.getElementById('trainingDate').value = today;
@@ -1134,7 +1391,7 @@
                     </div>
                     <div class="form-group">
                         <label>Media</label>
-                        <input type="url" id="editSessionVideos" value="${escapeHtml(item.videos)}" />
+                        <input type="url" id="editSessionVideos" value="${escapeHtml(item.media)}" />
                     </div>
                 `;
             } else if (type === 'climbs') {
@@ -1198,7 +1455,7 @@
                     </div>
                     <div class="form-group">
                         <label>Media</label>
-                        <input type="url" id="editClimbVideos" value="${escapeHtml(item.videos)}" />
+                        <input type="url" id="editClimbVideos" value="${escapeHtml(item.media)}" />
                     </div>
                 `;
             } else if (type === 'training') {
