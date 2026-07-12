@@ -593,12 +593,6 @@
 
         const localToday = () => new Date().toLocaleDateString('en-CA'); // YYYY-MM-DD in local time
 
-        // Parse a positive integer from an input; null if empty or invalid
-        function posInt(id) {
-            const v = parseInt(document.getElementById(id).value, 10);
-            return Number.isInteger(v) && v >= 1 ? v : null;
-        }
-
         // Map database rows (snake_case) to app objects (camelCase)
         // Note: loadSessions selects only session_id/date/location, so rating/notes/media
         // are undefined there; the Edit tab selects * and uses them all.
@@ -1082,7 +1076,7 @@
         async function loadSessions() {
             // Bound the fetch: only the last 30 days (capped at 50) are ever needed —
             // the climb-tab dropdown shows 7 days and the edit-climb dropdown guards
-            // against out-of-window sessions in showEditForm.
+            // against out-of-window sessions (the sessionSelect kind).
             const cutoff = new Date(Date.now() - 30 * 24 * 60 * 60 * 1000).toLocaleDateString('en-CA');
             const { data, error } = await sb.from('sessions')
                 .select('session_id, date, location')
@@ -1300,11 +1294,7 @@
             });
             event.target.closest('.edit-item').classList.add('selected');
 
-            showEditForm(type, selectedEditItem);
-        }
-
-        function showEditForm(type, item) {
-            renderEditFields(type, item);
+            renderEditFields(type, selectedEditItem);
         }
 
         async function updateEntry() {
@@ -1316,18 +1306,9 @@
             const type = selectedEditType;
             const pk = TYPE_META[type].pk;
             const id = selectedEditItem[TYPE_META[type].idField];
-            let payload;
 
-            if (type === 'sessions') {
-                payload = buildPayload('sessions', 'edit', selectedEditItem);
-                if (!payload) return;
-            } else if (type === 'climbs') {
-                payload = buildPayload('climbs', 'edit', selectedEditItem);
-                if (!payload) return;
-            } else if (type === 'training') {
-                payload = buildPayload('training', 'edit', selectedEditItem);
-                if (!payload) return;
-            }
+            const payload = buildPayload(type, 'edit', selectedEditItem);
+            if (!payload) return;
 
             if (!(await performWrite(sb.from(type).update(payload).eq(pk, id), 'Update', 'Entry updated successfully! 🎉'))) return;
 

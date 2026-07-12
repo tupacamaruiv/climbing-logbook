@@ -129,6 +129,18 @@ await performWrite(sb.from('training').delete().eq('training_id', id), 'Delete',
 
 Dropdowns for location and exercise are loaded from the `locations` and `exercises` tables (`active = true`, ordered by name), so adding a new gym or exercise is a database row, not a code change.
 
+### Field descriptors
+
+Each entity's fields are declared once in `ENTITY_FIELDS` (`{col, id, label, kind, ...}` per field), and a small per-`kind` handler map (`KIND`) drives all four JS paths from those declarations:
+
+- **Create-submit and update reads** — `buildPayload(type, mode, item)` reads the form into a payload keyed by DB column, running validation (required fields collect into one `Please fill in ...` message; `posInt`/`float` kinds carry their own invalid-value messages).
+- **Edit-form rendering** — `renderEditFields(type, item)` generates the edit form (`edit`-prefixed ids are derived, never stored). All attribute interpolation goes through `escapeHtml`; textarea content is set post-render via `safeSetValue`.
+- **Create-form resets** — `resetCreateForm(type)` clears after a successful submit. Sticky fields (session location, climb session, training date) are marked `preserveOnReset`.
+
+Two deliberately special kinds: `rating` (sessions) writes on update only if the row already had a rating or the user moved the slider — never the visual default onto a NULL row; `sessionSelect` (climbs) synthesizes a selected option when the climb's session is outside the 30-day `loadSessions` window, so a no-op save can't reassign `session_id`.
+
+The **create-form HTML stays hand-written** (no-JS-before-first-paint, one-off structure like the boulder-name chips). Drift is caught by `assertFormDefinitions()` at startup, which verifies every descriptor's element exists with the right tag/type and shows a loud `Form definition mismatch` error otherwise. Adding a field = one descriptor entry + one create-form HTML block; the edit form, both reads, and the reset come from the descriptor.
+
 ## Claude Integration
 
 The Supabase MCP server gives Claude direct SQL access to the database:
