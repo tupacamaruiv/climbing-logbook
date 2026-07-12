@@ -1241,30 +1241,8 @@
         }
 
         async function submitTraining() {
-            const setsVal = document.getElementById('trainingSets').value.trim();
-            const repsVal = document.getElementById('trainingReps').value.trim();
-            const sets = posInt('trainingSets');
-            const reps = posInt('trainingReps');
-            const row = {
-                training_id: 'T' + Date.now(),
-                date: toNull(document.getElementById('trainingDate').value),
-                exercise: toNull(document.getElementById('exercise').value),
-                sets: sets,
-                reps: reps,
-                weight: parseFloat(document.getElementById('weight').value),
-                performance_highlight: document.getElementById('trainingHighlight').checked,
-                notes: toNull(document.getElementById('trainingNotes').value)
-            };
-
-            if (!row.date || !row.exercise || isNaN(row.weight) || row.weight < 0) {
-                showStatus('Please fill in date, exercise, and weight', 'error');
-                return;
-            }
-
-            if ((setsVal !== '' && sets === null) || (repsVal !== '' && reps === null)) {
-                showStatus('Sets and reps must be whole numbers of 1 or more', 'error');
-                return;
-            }
+            const row = buildPayload('training', 'create');
+            if (!row) return;
 
             if (await performWrite(sb.from('training').insert(row), 'Save', 'Training Logged! 🎉')) {
                 clearTrainingForm();
@@ -1510,28 +1488,8 @@
                     media: toNull(document.getElementById('editClimbVideos').value)
                 };
             } else if (type === 'training') {
-                const editSetsVal = document.getElementById('editTrainingSets').value.trim();
-                const editRepsVal = document.getElementById('editTrainingReps').value.trim();
-                const editSets = posInt('editTrainingSets');
-                const editReps = posInt('editTrainingReps');
-                const weight = parseFloat(document.getElementById('editWeight').value);
-                if (isNaN(weight) || weight < 0) {
-                    showStatus('Please enter a valid weight of 0 or more', 'error');
-                    return;
-                }
-                if ((editSetsVal !== '' && editSets === null) || (editRepsVal !== '' && editReps === null)) {
-                    showStatus('Sets and reps must be whole numbers of 1 or more', 'error');
-                    return;
-                }
-                payload = {
-                    date: document.getElementById('editTrainingDate').value,
-                    exercise: toNull(document.getElementById('editExercise').value),
-                    sets: editSets,
-                    reps: editReps,
-                    weight: weight,
-                    performance_highlight: document.getElementById('editTrainingHighlight').checked,
-                    notes: toNull(document.getElementById('editTrainingNotes').value)
-                };
+                payload = buildPayload('training', 'edit', selectedEditItem);
+                if (!payload) return;
             }
 
             if (!(await performWrite(sb.from(type).update(payload).eq(pk, id), 'Update', 'Entry updated successfully! 🎉'))) return;
