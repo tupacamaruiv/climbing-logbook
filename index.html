@@ -1193,19 +1193,8 @@
         }
 
         async function submitSession() {
-            const row = {
-                session_id: 'S' + Date.now(),
-                date: document.getElementById('sessionDate').value || localToday(),
-                location: toNull(document.getElementById('sessionLocation').value),
-                rating: parseInt(document.getElementById('sessionRating').value, 10),
-                notes: toNull(document.getElementById('sessionNotes').value),
-                media: toNull(document.getElementById('sessionVideos').value)
-            };
-
-            if (!row.location) {
-                showStatus('Please fill in location', 'error');
-                return;
-            }
+            const row = buildPayload('sessions', 'create');
+            if (!row) return;
 
             if (await performWrite(sb.from('sessions').insert(row), 'Save', 'Session Logged! 🎉')) {
                 localStorage.setItem('lastLocation', row.location);
@@ -1529,17 +1518,8 @@
             let payload;
 
             if (type === 'sessions') {
-                payload = {
-                    date: document.getElementById('editSessionDate').value,
-                    location: toNull(document.getElementById('editSessionLocation').value),
-                    notes: toNull(document.getElementById('editSessionNotes').value),
-                    media: toNull(document.getElementById('editSessionVideos').value)
-                };
-                // Null until the user moves the slider — don't silently write the visual default
-                const ratingSlider = document.getElementById('editSessionRating');
-                if (selectedEditItem.rating != null || ratingSlider.dataset.touched) {
-                    payload.rating = parseInt(ratingSlider.value, 10);
-                }
+                payload = buildPayload('sessions', 'edit', selectedEditItem);
+                if (!payload) return;
             } else if (type === 'climbs') {
                 const attempts = posInt('editAttempts');
                 if (attempts === null) {
