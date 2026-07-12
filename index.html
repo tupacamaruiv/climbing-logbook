@@ -1198,7 +1198,7 @@
 
             if (await performWrite(sb.from('sessions').insert(row), 'Save', 'Session Logged! 🎉')) {
                 localStorage.setItem('lastLocation', row.location);
-                clearSessionForm();
+                resetCreateForm('sessions');
                 loadSessions();
             }
         }
@@ -1353,37 +1353,15 @@
         }
 
         function showEditForm(type, item) {
+            if (type === 'sessions') {
+                renderEditFields(type, item);
+                return;
+            }
+
             const container = document.getElementById('editFields');
             let fieldsHTML = '';
 
-            if (type === 'sessions') {
-                fieldsHTML = `
-                    <div class="form-group">
-                        <label>Date</label>
-                        <input type="date" id="editSessionDate" value="${escapeHtml(item.date)}" />
-                    </div>
-                    <div class="form-group">
-                        <label>Location</label>
-                        <select id="editSessionLocation">
-                            <option value="">Choose location...</option>
-                            ${availableLocations.map(loc => `<option value="${escapeHtml(loc)}" ${item.location === loc ? 'selected' : ''}>${escapeHtml(loc)}</option>`).join('\n                            ')}
-                        </select>
-                    </div>
-                    <div class="form-group">
-                        <label>Session Rating (1-10)</label>
-                        <input type="range" id="editSessionRating" min="1" max="10" value="${item.rating || 5}" />
-                        <div class="range-value"><span id="editRatingValue">${item.rating || 5}</span>/10</div>
-                    </div>
-                    <div class="form-group">
-                        <label>Notes</label>
-                        <textarea id="editSessionNotes" rows="8"></textarea>
-                    </div>
-                    <div class="form-group">
-                        <label>Media</label>
-                        <input type="url" id="editSessionVideos" value="${escapeHtml(item.media)}" />
-                    </div>
-                `;
-            } else if (type === 'climbs') {
+            if (type === 'climbs') {
                 // availableSessions only covers the last 30 days (see loadSessions).
                 // If this climb's session is outside that window, synthesize a selected
                 // option for it — otherwise the browser would auto-select the first
@@ -1489,13 +1467,7 @@
             container.innerHTML = fieldsHTML;
             
             // Set textarea values after DOM is created (to properly handle special characters)
-            if (type === 'sessions') {
-                safeSetValue('editSessionNotes', item.notes);
-                document.getElementById('editSessionRating').addEventListener('input', function() {
-                    document.getElementById('editRatingValue').textContent = this.value;
-                    this.dataset.touched = '1';
-                });
-            } else if (type === 'climbs') {
+            if (type === 'climbs') {
                 safeSetValue('editBoulderName', item.boulderName);
                 safeSetValue('editClimbNotes', item.notes);
             } else if (type === 'training') {
@@ -1622,15 +1594,6 @@
             loadEditData();
             if (type === 'climbs') loadBoulderNames();
             if (type === 'sessions') loadSessions();
-        }
-
-        function clearSessionForm() {
-            const today = localToday();
-            document.getElementById('sessionDate').value = today;
-            document.getElementById('sessionNotes').value = '';
-            document.getElementById('sessionVideos').value = '';
-            document.getElementById('sessionRating').value = 5;
-            document.getElementById('ratingValue').textContent = '5';
         }
 
         function clearClimbForm() {
