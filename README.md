@@ -26,5 +26,3 @@ Five Postgres tables:
 | `exercises` | Lookup table for training exercises | `id` |
 
 Climbs reference sessions (`climbs.session_id → sessions.session_id`), so every climb rolls up to the session it happened in. Sessions reference `locations.name` and training references `exercises.name`, keeping naming consistent.
-
-The pre-migration JSON files (the original GitHub-based storage) are archived read-only under [data/archive/](data/archive/).

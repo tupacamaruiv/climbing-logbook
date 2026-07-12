@@ -164,7 +164,6 @@ The app originally stored data as JSON files (`sessions.json`, `climbs.json`, `t
 - All rows were migrated with IDs preserved (the `S`/`C`/`T`-prefixed keys)
 - Column renames: `videos` → `media`, `timestamp` → `created_at`, `lastUpdated` → `updated_at`
 - Dropped fields: `rpe` (sessions — `rating` is the kept metric) and `gradeSystem` (climbs — the system is encoded in the grade value itself)
-- The original JSON files are archived read-only under `data/archive/` and are no longer written to
 
 ## File Structure
 
@@ -173,6 +172,6 @@ climbing-logbook/
 ├── index.html          # The entire application (markup, styles, logic)
 ├── README.md           # Project overview and data structure
 ├── TECHNICAL.md        # This document
-└── data/
-    └── archive/        # Pre-migration JSON files (read-only backup)
+├── backups/            # Periodic JSON snapshots of the live Supabase data
+└── .github/            # CI: inline-script syntax check
 ```
